@@ -1,6 +1,6 @@
 /* Easy Fix — service worker (app shell cache) */
-const CACHE = 'easyfix-v2';
-const SHELL = ['index.html', 'manifest.webmanifest', 'hero.jpg', 'icon-192.png', 'icon-512.png'];
+const CACHE = 'easyfix-v3';
+const SHELL = ['index.html', 'manifest.webmanifest', 'hero-banner.jpg', 'icon-192.png', 'icon-512.png'];
 
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(SHELL)).then(() => self.skipWaiting()));
