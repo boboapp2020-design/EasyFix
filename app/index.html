@@ -224,6 +224,7 @@
   .tk .top .pill{flex-shrink:0}
   .ndot{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--danger);margin-right:7px;flex-shrink:0;box-shadow:0 0 0 3px var(--danger-soft)}
   .tk .cat{font-size:15px;font-weight:700;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+  .tk .cat .ci{font-size:19px;line-height:1;flex-shrink:0} .tk .cat .cn{font-weight:700}
   .tk .dt{font-size:13px;color:var(--muted);margin-top:3px;line-height:1.5}
   .tk .meta{font-size:12px;color:var(--muted);margin-top:10px;display:flex;gap:12px;flex-wrap:wrap;padding-top:10px;border-top:1px solid var(--line)}
   .dot{position:absolute;top:12px;right:12px;width:10px;height:10px;border-radius:50%;background:var(--danger);box-shadow:0 0 0 3px var(--danger-soft)}
@@ -277,6 +278,15 @@
   .emp-row:active{transform:scale(.99)} .emp-row .er-av{width:42px;height:42px;border-radius:12px;background:var(--brand-soft);color:var(--brand-deep);display:grid;place-items:center;font-weight:700;flex-shrink:0}
   .emp-row .er-info{flex:1;min-width:0} .emp-row .er-info b{font-size:14px;display:block} .emp-row .er-info small{font-size:12px;color:var(--muted);display:block}
   .emp-row .er-code{font-size:12px;font-weight:700;color:var(--brand-deep);font-variant-numeric:tabular-nums}
+
+  /* ---------- report bars ---------- */
+  .rgroup{margin-bottom:16px} .rgroup:last-child{margin-bottom:0}
+  .rgroup h4{font-size:13px;color:var(--muted);font-weight:700;margin-bottom:10px}
+  .rbar{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+  .rbar .rl{font-size:13px;min-width:110px;font-weight:600;display:flex;align-items:center;gap:5px}
+  .rbar .rt{flex:1;height:20px;border-radius:7px;background:var(--wait-soft);overflow:hidden}
+  .rbar .rt i{display:block;height:100%;border-radius:7px;transition:width .6s cubic-bezier(.2,.8,.2,1)}
+  .rbar .rv{font-size:13px;font-weight:700;min-width:26px;text-align:right;font-variant-numeric:tabular-nums}
   .filters{display:flex;gap:8px;overflow-x:auto;padding-bottom:10px;margin-bottom:4px;scrollbar-width:none}
   .filters::-webkit-scrollbar{display:none}
   .filters .f{border:1.5px solid var(--line);background:var(--card);border-radius:999px;padding:9px 15px;font-size:13px;
@@ -451,6 +461,12 @@
       <div class="shead"><span class="sh-ic i-blue">🔔</span><div><b>งานใหม่รอตรวจสอบ</b><small>รายการที่ต้องรับเรื่อง</small></div></div>
       <div id="a-new"></div>
       <button class="btn ghost" style="margin-top:10px" onclick="go('aqueue')">ดูงานทั้งหมด ›</button>
+    </div>
+    <div class="card">
+      <div class="shead"><span class="sh-ic i-blue">📊</span><div><b>สรุปสถิติงานซ่อม</b><small>ภาพรวมทั้งหมด</small></div></div>
+      <div id="a-report"></div>
+      <div style="height:12px"></div>
+      <button class="btn" onclick="exportCSV()">📥 ส่งออกเป็น Excel (.csv)</button>
     </div>
   </section>
 
@@ -778,7 +794,7 @@ function tkCard(t,isAdmin){
   const showBar=[ST.ACC,ST.WORK,ST.REV].includes(t.status);
   return `<div class="tk ${alert?'alert':''}" onclick="openTicket('${t.ticketId}')">
     <div class="top"><span class="id">${alert?'<i class="ndot"></i>':''}${t.ticketId}</span>${stPill(t.status)}</div>
-    <div class="cat">${cat?cat.ic:'🔧'} ${t.category} ${urgBadge(t.urgency)}</div>
+    <div class="cat"><span class="ci">${cat?cat.ic:'🔧'}</span><span class="cn">${t.category}</span>${urgBadge(t.urgency)}</div>
     <div class="dt">${t.detail}</div>
     ${showBar?progBar(t.progress):''}
     <div class="meta">
@@ -821,9 +837,65 @@ async function loadAdmin(){
   const FIL=['ทั้งหมด',ST.NEW,ST.ACC,ST.WORK,ST.REV,ST.DONE,ST.REJ];
   $('a-filters').innerHTML=FIL.map(f=>`<button class="f ${f===state.filter?'on':''}" onclick="setFilter('${f}')">${f}</button>`).join('');
   $('a-list').innerHTML=state.aTickets.length?state.aTickets.map(t=>tkCard(t,true)).join(''):emptyBox('ไม่มีรายการในสถานะนี้','🗂️');
+  renderReport(state.aTickets);
   updateBadges();
 }
 function setFilter(f){state.filter=f;loadAdmin();}
+
+/* ===== รายงานสถิติ ===== */
+function bar(label,val,max,color){
+  const pct=max?Math.round(val/max*100):0;
+  return `<div class="rbar"><div class="rl">${label}</div><div class="rt"><i style="width:${pct}%;background:${color}"></i></div><div class="rv">${val}</div></div>`;
+}
+function renderReport(all){
+  if(!all||!all.length){$('a-report').innerHTML='<p class="hint">ยังไม่มีข้อมูล</p>';return;}
+  const ST_COLORS={[ST.NEW]:'#2563eb',[ST.ACC]:'#0891b2',[ST.WORK]:'#d97706',[ST.REV]:'#7c3aed',[ST.RECV]:'#0d9488',[ST.DONE]:'#16a34a',[ST.REJ]:'#dc2626'};
+  // ตามสถานะ
+  const byStatus={}; [ST.NEW,ST.ACC,ST.WORK,ST.REV,ST.RECV,ST.DONE,ST.REJ].forEach(s=>byStatus[s]=0);
+  const byCat={}, byUrg={'ปกติ':0,'เร่งด่วน':0,'ด่วนมาก':0};
+  let thisMonth=0, ratingSum=0, ratingN=0;
+  const ym=new Date().toISOString().slice(0,7);
+  all.forEach(t=>{
+    byStatus[t.status]=(byStatus[t.status]||0)+1;
+    byCat[t.category]=(byCat[t.category]||0)+1;
+    if(t.urgency)byUrg[t.urgency]=(byUrg[t.urgency]||0)+1;
+    const d=new Date(t.createdAt); if(!isNaN(d.getTime())&&d.toISOString().slice(0,7)===ym)thisMonth++;
+    if(t.ratingScore){ratingSum+=Number(t.ratingScore);ratingN++;}
+  });
+  const maxS=Math.max(...Object.values(byStatus),1);
+  const cats=Object.entries(byCat).sort((a,b)=>b[1]-a[1]).slice(0,8);
+  const maxC=Math.max(...cats.map(c=>c[1]),1);
+  const maxU=Math.max(...Object.values(byUrg),1);
+  const catIc=k=>{const c=CATEGORIES.find(x=>x.k===k);return c?c.ic:'🔧';};
+  $('a-report').innerHTML=`
+    <div class="rgroup">
+      <div class="prof" style="grid-template-columns:1fr 1fr">
+        <div class="item"><small>งานทั้งหมด</small><b>${all.length}</b></div>
+        <div class="item"><small>งานเดือนนี้</small><b>${thisMonth}</b></div>
+        <div class="item"><small>คะแนนเฉลี่ย</small><b>${ratingN?(Math.round(ratingSum/ratingN*10)/10)+' ⭐':'-'}</b></div>
+        <div class="item"><small>ประเมินแล้ว</small><b>${ratingN} งาน</b></div>
+      </div>
+    </div>
+    <div class="rgroup"><h4>ตามสถานะ</h4>
+      ${[ST.NEW,ST.ACC,ST.WORK,ST.REV,ST.RECV,ST.DONE,ST.REJ].filter(s=>byStatus[s]).map(s=>bar(s,byStatus[s],maxS,ST_COLORS[s])).join('')}</div>
+    <div class="rgroup"><h4>หมวดงานยอดนิยม</h4>
+      ${cats.map(([k,v])=>bar('<span>'+catIc(k)+'</span> '+k,v,maxC,'linear-gradient(90deg,var(--brand-2),var(--brand-deep))')).join('')}</div>
+    <div class="rgroup"><h4>ตามความเร่งด่วน</h4>
+      ${bar('🟢 ปกติ',byUrg['ปกติ'],maxU,'#16a34a')}${bar('🟡 เร่งด่วน',byUrg['เร่งด่วน'],maxU,'#e08a00')}${bar('🔴 ด่วนมาก',byUrg['ด่วนมาก'],maxU,'#dc2626')}</div>`;
+}
+function exportCSV(){
+  const all=state.aTickets||[];
+  if(!all.length)return toast('ยังไม่มีข้อมูลให้ส่งออก');
+  const cols=[['ticketId','รหัสงาน'],['createdAt','วันที่แจ้ง'],['empCode','รหัสพนักงาน'],['name','ชื่อผู้แจ้ง'],['dept','สังกัด'],['zone','จุดบ้านพัก'],['room','ห้อง'],['phone','เบอร์โทร'],['category','หมวดงาน'],['urgency','ความเร่งด่วน'],['detail','รายละเอียด'],['status','สถานะ'],['progress','ความคืบหน้า%'],['etaText','ระยะเวลา'],['appointDate','วันนัด'],['adminNote','บันทึกผู้ดูแล'],['adminName','ผู้รับผิดชอบ'],['ratingScore','คะแนน'],['ratingComment','ความเห็น']];
+  const esc=v=>{v=(v==null?'':String(v)).replace(/"/g,'""');return '"'+v+'"';};
+  let csv='﻿'+cols.map(c=>esc(c[1])).join(',')+'\n';
+  all.slice().reverse().forEach(t=>{csv+=cols.map(c=>esc(t[c[0]])).join(',')+'\n';});
+  const blob=new Blob([csv],{type:'text/csv;charset=utf-8;'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);
+  a.download='EasyFix_รายงานซ่อม_'+new Date().toISOString().slice(0,10)+'.csv';
+  document.body.appendChild(a);a.click();document.body.removeChild(a);
+  toast('📥 ส่งออก '+all.length+' รายการแล้ว');
+}
 
 /* ===== admin: จัดการพนักงาน ===== */
 let empSearchTimer=null;
@@ -910,7 +982,7 @@ async function openTicket(id){
 function head(t){
   const cat=CATEGORIES.find(c=>c.k===t.category);
   return `<div class="row" style="justify-content:space-between"><h2 style="margin:0;font-family:var(--display)">${t.ticketId}</h2>${stPill(t.status)}</div>
-  <div style="margin:14px 0"><b style="font-size:17px">${cat?cat.ic:'🔧'} ${t.category}</b> ${urgBadge(t.urgency)}
+  <div style="margin:14px 0"><span style="font-size:20px;margin-right:8px">${cat?cat.ic:'🔧'}</span><b style="font-size:17px">${t.category}</b> ${urgBadge(t.urgency)}
     <p style="color:var(--muted);margin-top:5px;line-height:1.6">${t.detail}</p></div>
   ${[ST.ACC,ST.WORK,ST.REV,ST.RECV,ST.DONE].includes(t.status)?`<div class="row">${progBar(t.progress)}</div>`:''}
   ${photosBlock(t.photos)}`;
