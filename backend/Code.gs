@@ -275,7 +275,7 @@ function savePhotos(photos, ticketId) {
       if (!m) continue;
       var f = folder.createFile(Utilities.newBlob(Utilities.base64Decode(m[2]), m[1], ticketId + '-' + (i + 1) + '.jpg'));
       f.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
-      urls.push('https://drive.google.com/uc?id=' + f.getId());
+      urls.push('https://drive.google.com/thumbnail?id=' + f.getId() + '&sz=w1200');   // แสดงใน <img> ได้เสมอ
     } catch (err) { log('photo-error', String(err)); }
   }
   return urls.join(' , ');

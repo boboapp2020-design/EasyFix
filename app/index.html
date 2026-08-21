@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="th">
+<html lang="th" data-theme="light">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
@@ -104,13 +104,13 @@
   .err{background:var(--danger-soft);color:var(--danger);border-radius:12px;padding:11px 14px;font-size:14px;margin-top:12px;display:none;font-weight:500}
 
   /* ---------- สถานะ ---------- */
-  .s-new{background:var(--info-soft);color:var(--info)}
-  .s-acc{background:var(--brand-soft);color:var(--brand-deep)}
-  .s-work{background:var(--warn-soft);color:var(--warn)}
-  .s-rev{background:#ede9fe;color:#7c3aed}
-  .s-recv{background:var(--ok-soft);color:var(--ok)}
-  .s-done{background:var(--ok-soft);color:var(--ok)}
-  .s-rej{background:var(--danger-soft);color:var(--danger)}
+  .s-new{background:#e5edff;color:#2563eb}      /* รอตรวจสอบ = น้ำเงิน */
+  .s-acc{background:#cffafe;color:#0891b2}      /* รับเรื่องแล้ว = ฟ้า/cyan */
+  .s-work{background:#fef3c7;color:#d97706}     /* กำลังดำเนินการ = ส้ม */
+  .s-rev{background:#ede9fe;color:#7c3aed}      /* รอตรวจรับ = ม่วง */
+  .s-recv{background:#ccfbf1;color:#0d9488}     /* ตรวจรับแล้ว = เขียวมิ้นต์ */
+  .s-done{background:#dcfce7;color:#16a34a}     /* เสร็จสมบูรณ์ = เขียว */
+  .s-rej{background:#fee2e2;color:#dc2626}      /* ไม่สำเร็จ = แดง */
 
   /* ---------- login ---------- */
   #s-login{padding:0 0 40px}
@@ -148,6 +148,7 @@
   .uhero{position:relative;border-radius:24px;overflow:hidden;margin-bottom:16px;box-shadow:var(--sh);
     margin-top:calc(env(safe-area-inset-top,0px))}
   .uhero-bg{width:100%;display:block}
+  .p-house{width:58px;height:58px;border-radius:14px;object-fit:cover;object-position:72% 32%;flex-shrink:0;box-shadow:var(--sh-sm)}
   .uhero-text{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;padding-left:22px;color:#fff}
   .uhero-text h1{font-family:var(--display);font-size:23px;font-weight:700;text-shadow:0 1px 10px rgba(3,60,55,.25)}
   .uhero-text p{font-size:13px;opacity:.95;margin-top:3px;text-shadow:0 1px 8px rgba(3,60,55,.25)}
@@ -252,6 +253,16 @@
   .menu-item:last-child{border-bottom:none} .menu-item:active{opacity:.6}
   .menu-item .mi-ic{width:42px;height:42px;border-radius:12px;background:var(--brand-soft);display:grid;place-items:center;font-size:20px;flex-shrink:0}
   .menu-item.danger{color:var(--danger)} .menu-item.danger .mi-ic{background:var(--danger-soft)}
+  /* side drawer */
+  .drawer-scrim{position:fixed;inset:0;background:rgba(6,20,23,.5);backdrop-filter:blur(2px);z-index:45;opacity:0;visibility:hidden;transition:.25s}
+  .drawer-scrim.show{opacity:1;visibility:visible}
+  .drawer{position:fixed;top:0;right:0;bottom:0;width:82%;max-width:330px;background:var(--card);z-index:46;
+    transform:translateX(105%);transition:transform .32s cubic-bezier(.2,.8,.2,1);box-shadow:var(--sh-lg);
+    padding:calc(env(safe-area-inset-top,0px) + 20px) 18px calc(20px + var(--safe-b));display:flex;flex-direction:column;overflow-y:auto}
+  .drawer.show{transform:translateX(0)}
+  .drawer-head{display:flex;align-items:center;gap:13px;padding-bottom:16px;border-bottom:1px solid var(--line);margin-bottom:6px}
+  .drawer-head .da{width:54px;height:54px;border-radius:16px;background:linear-gradient(135deg,var(--brand-2),var(--brand-deep));color:#fff;display:grid;place-items:center;font-family:var(--display);font-size:22px;font-weight:700;flex-shrink:0}
+  .drawer-head b{font-family:var(--display);font-size:16px;display:block} .drawer-head small{font-size:12px;color:var(--muted);display:block;margin-top:2px}
 
   /* ---------- stats ---------- */
   .stats{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:14px}
@@ -361,7 +372,8 @@
     <div class="card">
       <h2>🏠 ข้อมูลบ้านพักของคุณ</h2>
       <div class="prow"><span class="pic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-6.5 8-6.5s8 2.5 8 6.5"/></svg></span>
-        <div class="pgrow"><small>ชื่อ - สกุล</small><b id="p-name">-</b></div></div>
+        <div class="pgrow grow"><small>ชื่อ - สกุล</small><b id="p-name">-</b></div>
+        <img class="p-house" src="house.png" alt=""></div>
       <div class="prow"><span class="pic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4h6v3H9z"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="8" y1="16" x2="14" y2="16"/></svg></span>
         <div class="pgrow"><small>สังกัด</small><b id="p-dept">-</b></div></div>
       <div class="ptiles">
@@ -463,6 +475,8 @@
   <nav class="nav" id="nav" style="display:none"></nav>
 </div>
 
+<div class="drawer-scrim" id="drawer-scrim" onclick="closeMenu()"></div>
+<aside class="drawer" id="drawer"></aside>
 <div class="modal" id="modal"><div class="sheet" id="sheet"></div></div>
 <div class="toast" id="toast"></div>
 <div class="demo-badge" id="demoBadge" style="display:none">DEMO</div>
@@ -471,6 +485,7 @@
 /* ================= CONFIG ================= */
 const API_URL = "https://script.google.com/macros/s/AKfycbx3lJtRGasyqF_TbY3y841GYj0xkOIHh_Gb9-WcThXnKhY0BEJa2O_x3_LZiTUwkhmcXg/exec";
 const DEMO = !API_URL;
+const APP_VERSION = "1.0.0";
 
 const ST={NEW:'รอตรวจสอบ',ACC:'รับเรื่องแล้ว',WORK:'กำลังดำเนินการ',REV:'รอตรวจรับ',RECV:'ตรวจรับแล้ว',DONE:'เสร็จสมบูรณ์',REJ:'ไม่สามารถดำเนินการได้'};
 const ST_META={
@@ -483,18 +498,18 @@ const CATEGORIES=[{k:'ไฟฟ้า',ic:'💡',img:'cat/01.png'},{k:'ประ
   {k:'งานทาสี',ic:'🎨',img:'cat/10.png'},{k:'งานทำความสะอาด',ic:'🧹',img:'cat/11.png'},{k:'อื่นๆ',ic:'🔧',img:'cat/12.png'}];
 const URGENCY=[{k:'ปกติ',ic:'🟢',d:'ไม่เร่งด่วน'},{k:'เร่งด่วน',ic:'🟡',d:'ภายใน 1-2 วัน'},{k:'ด่วนมาก',ic:'🔴',d:'ภายในวันนี้'}];
 const PROBLEMS={
-  'ไฟฟ้า':['หลอดไฟไม่ติด','หลอดไฟกะพริบ','ปลั๊กไฟใช้ไม่ได้','สวิตช์ไฟเสีย','เบรกเกอร์ตัดบ่อย','ไฟตก/ไฟกระพริบทั้งห้อง','ไฟรั่ว/ไฟช็อต','สายไฟชำรุด','ไม่มีไฟทั้งห้อง'],
-  'ประปา':['ก๊อกน้ำรั่ว/หยด','น้ำไม่ไหล','น้ำไหลอ่อน','ท่อน้ำรั่ว/แตก','ท่อระบายตัน','น้ำรั่วซึมพื้น/ผนัง','ปั๊มน้ำไม่ทำงาน','น้ำขุ่น/มีกลิ่น'],
-  'เครื่องปรับอากาศ':['แอร์ไม่เย็น','แอร์มีน้ำหยด','แอร์เปิดไม่ติด','แอร์มีเสียงดัง','แอร์มีกลิ่นเหม็น','รีโมทเสีย','ถึงรอบล้างแอร์'],
-  'ประตู/หน้าต่าง':['ประตูปิดไม่สนิท','ลูกบิด/กลอนเสีย','กุญแจเสีย/ค้าง','บานพับหลวม/หลุด','กระจกแตก/ร้าว','มุ้งลวดขาด','หน้าต่างเปิด-ปิดไม่ได้'],
-  'หลังคา':['หลังคารั่ว/น้ำหยด','ฝ้าเพดานบวมน้ำ','ฝ้าเพดานหลุด/ทะลุ','กระเบื้องหลังคาแตก','รางน้ำอุดตัน/รั่ว'],
-  'ห้องน้ำ':['ชักโครกตัน/กดไม่ลง','ชักโครกน้ำไหลตลอด','ฝักบัว/สายชำระเสีย','อ่างล้างหน้าตัน','พื้นแตก/ลื่น','น้ำรั่วซึม','กลิ่นเหม็นจากท่อ','พัดลมดูดอากาศเสีย'],
-  'เฟอร์นิเจอร์':['เตียง/ที่นอนชำรุด','ตู้/ลิ้นชักเสีย','โต๊ะ/เก้าอี้ชำรุด','ชั้นวางหลุด/หัก','บานประตูตู้เสีย'],
-  'อินเทอร์เน็ต/WiFi':['เน็ตใช้ไม่ได้','เชื่อมต่อ WiFi ไม่ได้','เน็ตช้า','สัญญาณอ่อน/หลุดบ่อย','เราเตอร์ไฟไม่ติด'],
-  'งานก่อสร้าง':['ผนังแตกร้าว','ปูน/ฉาบหลุดร่อน','พื้นทรุด/แตก','ต่อเติม/ซ่อมโครงสร้าง','อื่นๆ (ระบุด้านล่าง)'],
-  'งานทาสี':['สีลอก/ซีดจาง','ผนังมีรอยเปื้อน','ต้องการทาสีใหม่','เชื้อรา/คราบดำบนผนัง'],
-  'งานทำความสะอาด':['ท่อ/รางระบายอุดตัน','ทำความสะอาดทั่วไป','กำจัดสิ่งอุดตัน','คราบสกปรกฝังแน่น'],
-  'อื่นๆ':['ปลวก/แมลง/สัตว์รบกวน','กลิ่นอับ/ความชื้น','อื่นๆ (ระบุด้านล่าง)']};
+  'ไฟฟ้า':['หลอดไฟไม่ติด','หลอดไฟกะพริบ','ปลั๊กไฟใช้ไม่ได้','สวิตช์ไฟเสีย','เบรกเกอร์ตัดบ่อย','ไฟตก/ไฟกระพริบทั้งห้อง','ไฟรั่ว/ไฟช็อต','สายไฟชำรุด','ไม่มีไฟทั้งห้อง','พัดลมเพดานเสีย','กริ่ง/ออดไม่ดัง','ต้องการติดตั้งปลั๊ก/ไฟเพิ่ม'],
+  'ประปา':['ก๊อกน้ำรั่ว/หยด','น้ำไม่ไหล','น้ำไหลอ่อน','ท่อน้ำรั่ว/แตก','ท่อระบายตัน','น้ำรั่วซึมพื้น/ผนัง','ปั๊มน้ำไม่ทำงาน','น้ำขุ่น/มีกลิ่น','ถังเก็บน้ำรั่ว/ลูกลอยเสีย','มิเตอร์น้ำผิดปกติ','วาล์ว/สต๊อปวาล์วเสีย'],
+  'เครื่องปรับอากาศ':['แอร์ไม่เย็น','แอร์มีน้ำหยด','แอร์เปิดไม่ติด','แอร์มีเสียงดัง','แอร์มีกลิ่นเหม็น','รีโมทเสีย','ถึงรอบล้างแอร์','แอร์เปิด-ปิดเอง','น้ำแข็งเกาะคอยล์','คอมเพรสเซอร์เสียงดัง'],
+  'ประตู/หน้าต่าง':['ประตูปิดไม่สนิท','ลูกบิด/กลอนเสีย','กุญแจเสีย/ค้าง','บานพับหลวม/หลุด','กระจกแตก/ร้าว','มุ้งลวดขาด','หน้าต่างเปิด-ปิดไม่ได้','ประตูบานเลื่อนฝืด','โช้คอัพประตูเสีย','วงกบผุ/ชำรุด'],
+  'หลังคา':['หลังคารั่ว/น้ำหยด','ฝ้าเพดานบวมน้ำ','ฝ้าเพดานหลุด/ทะลุ','กระเบื้องหลังคาแตก','รางน้ำอุดตัน/รั่ว','นก/สัตว์ทำรังบนฝ้า','ฉนวนกันความร้อนหลุด'],
+  'ห้องน้ำ':['ชักโครกตัน/กดไม่ลง','ชักโครกน้ำไหลตลอด','ฝักบัว/สายชำระเสีย','อ่างล้างหน้าตัน','ก๊อกอ่างล้างหน้ารั่ว','พื้น/ผนังกระเบื้องหลุด','พื้นแตก/ลื่น','น้ำรั่วซึม','กลิ่นเหม็นจากท่อ','พัดลมดูดอากาศเสีย','ราวแขวน/ที่ใส่สบู่หลุด'],
+  'เฟอร์นิเจอร์':['เตียง/ที่นอนชำรุด','ตู้/ลิ้นชักเสีย','โต๊ะ/เก้าอี้ชำรุด','ชั้นวางหลุด/หัก','บานประตูตู้เสีย','บานพับ/มือจับหลุด','ล้อเลื่อนชำรุด','ต้องการเฟอร์นิเจอร์เพิ่ม'],
+  'อินเทอร์เน็ต/WiFi':['เน็ตใช้ไม่ได้','เชื่อมต่อ WiFi ไม่ได้','เน็ตช้า','สัญญาณอ่อน/หลุดบ่อย','เราเตอร์ไฟไม่ติด','ต้องการตั้งค่า/เปลี่ยนรหัส WiFi','สายแลน/หัวต่อชำรุด'],
+  'งานก่อสร้าง':['ผนังแตกร้าว','ปูน/ฉาบหลุดร่อน','พื้นทรุด/แตก','เพดานรั่ว/ร้าว','บันได/ราวจับชำรุด','ต่อเติม/ซ่อมโครงสร้าง','อื่นๆ (ระบุด้านล่าง)'],
+  'งานทาสี':['สีลอก/ซีดจาง','ผนังมีรอยเปื้อน','ต้องการทาสีใหม่','เชื้อรา/คราบดำบนผนัง','ประตู/วงกบสีลอก','ทำกันซึมผนัง'],
+  'งานทำความสะอาด':['ท่อ/รางระบายอุดตัน','ทำความสะอาดทั่วไป','กำจัดสิ่งอุดตัน','คราบสกปรกฝังแน่น','กำจัดหยากไย่/ฝุ่น','ล้างแอร์/พัดลม','ตัดหญ้า/ดูแลรอบบ้าน'],
+  'อื่นๆ':['ปลวก/แมลง/สัตว์รบกวน','กลิ่นอับ/ความชื้น','เปลี่ยนหลอด/อุปกรณ์ทั่วไป','ติดตั้งอุปกรณ์เพิ่ม','ย้าย/จัดวางเฟอร์นิเจอร์','กุญแจ/ระบบล็อก','งานเบ็ดเตล็ด','อื่นๆ (ระบุด้านล่าง)']};
 
 let state={token:null,profile:null,role:'user',mode:'user',category:null,symptoms:[],urgency:'ปกติ',photos:[],tickets:[],aTickets:[],filter:'ทั้งหมด'};
 const store={get(k){try{return localStorage.getItem(k)}catch(e){return null}},set(k,v){try{localStorage.setItem(k,v)}catch(e){}},del(k){try{localStorage.removeItem(k)}catch(e){}}};
@@ -602,13 +617,32 @@ function go(name){
 }
 /* ===== hamburger menu + change PIN ===== */
 function openMenu(){
-  const name=(state.profile&&state.profile.name)||'';
+  const p=state.profile||{}, name=p.name||'', initial=String(name).replace(/^(นาย|นาง|น\.ส\.|ท้าว)\s*/,'').charAt(0)||'👤';
+  const items = state.role==='admin'
+    ? [{ic:'📊',t:'ภาพรวม',s:'แดชบอร์ด',go:'adash'},{ic:'🗂️',t:'คิวงานซ่อม',s:'จัดการงานทั้งหมด',go:'aqueue'},{ic:'👥',t:'จัดการพนักงาน',s:'แก้ไขข้อมูล/รีเซ็ต PIN',go:'aemp'},{ic:'🔑',t:'เปลี่ยน PIN',s:'ตั้งรหัสใหม่',fn:'openChangePin'},{ic:'ℹ️',t:'เกี่ยวกับแอป',s:'เวอร์ชัน & ผู้พัฒนา',fn:'openAbout'}]
+    : [{ic:'🏠',t:'หน้าหลัก',s:'ข้อมูลบ้านพัก',go:'home'},{ic:'➕',t:'แจ้งซ่อมใหม่',s:'ส่งเรื่องซ่อม',go:'report'},{ic:'📋',t:'งานซ่อมของฉัน',s:'ติดตามสถานะ',go:'tickets'},{ic:'🔑',t:'เปลี่ยน PIN',s:'ตั้งรหัส PIN ส่วนตัวใหม่',fn:'openChangePin'},{ic:'ℹ️',t:'เกี่ยวกับแอป',s:'เวอร์ชัน & ผู้พัฒนา',fn:'openAbout'}];
+  $('drawer').innerHTML=`
+    <div class="drawer-head"><div class="da">${initial}</div><div><b>${name}</b><small>${state.role==='admin'?(p.position||'ผู้ดูแลระบบ'):'รหัสพนักงาน '+(p.empCode||'')}</small></div></div>
+    ${items.map(i=>`<div class="menu-item" onclick="closeMenu();${i.fn?i.fn+'()':"go('"+i.go+"')"}"><span class="mi-ic">${i.ic}</span><div>${i.t}<div class="hint" style="font-weight:400">${i.s}</div></div></div>`).join('')}
+    <div class="menu-item danger" onclick="closeMenu();logout()"><span class="mi-ic">🚪</span><div>ออกจากระบบ</div></div>
+    <div style="flex:1"></div>
+    <div style="text-align:center;color:var(--muted);font-size:11px">Easy Fix · ระบบแจ้งซ่อมบ้านพักพนักงาน</div>`;
+  $('drawer').classList.add('show');$('drawer-scrim').classList.add('show');
+}
+function closeMenu(){$('drawer').classList.remove('show');$('drawer-scrim').classList.remove('show');}
+function openAbout(){
   $('sheet').innerHTML=`
-    <div style="text-align:center;margin-bottom:8px"><b style="font-family:var(--display);font-size:17px">${name}</b>
-      <div class="hint" style="margin-top:2px">${state.role==='admin'?'ผู้ดูแลระบบ':'รหัสพนักงาน '+(state.profile?state.profile.empCode:'')}</div></div>
-    <div class="menu-item" onclick="openChangePin()"><span class="mi-ic">🔑</span><div>เปลี่ยน PIN<div class="hint" style="font-weight:400">ตั้งรหัส PIN ส่วนตัวใหม่</div></div></div>
-    <div class="menu-item danger" onclick="closeModal();logout()"><span class="mi-ic">🚪</span><div>ออกจากระบบ</div></div>
-    <div style="height:8px"></div><button class="btn ghost" onclick="closeModal()">ปิด</button>`;
+    <div style="text-align:center">
+      <img src="icon-512.png" style="width:80px;height:80px;border-radius:22px;margin:2px auto 10px;box-shadow:var(--sh);display:block">
+      <h2 style="font-family:var(--display)">Easy Fix</h2>
+      <p class="sub-c">ระบบแจ้งซ่อมบ้านพักพนักงาน</p>
+    </div>
+    <div class="sec">
+      <div class="kv"><span>เวอร์ชัน</span><b>${APP_VERSION}</b></div>
+      <div class="kv"><span>ผู้พัฒนา</span><b>สุรศักดิ์ นามวรรณ</b></div>
+      <div class="kv"><span>ผู้ติดต่อ-ประสานงาน</span><b>สุลีนา พมมะเทบ</b></div>
+    </div>
+    <div style="height:12px"></div><button class="btn ghost" onclick="closeModal()">ปิด</button>`;
   $('modal').classList.add('show');
 }
 function openChangePin(){
@@ -720,6 +754,15 @@ $('btn-submit').onclick=async()=>{
 };
 
 /* ================= SHARED RENDER ================= */
+function fmtDate(s){
+  if(!s)return '-';
+  if(typeof s==='string'&&s.indexOf('T')<0)return s;   // "yyyy-MM-dd HH:mm" อยู่แล้ว
+  const d=new Date(s); if(isNaN(d.getTime()))return s;
+  const p=n=>('0'+n).slice(-2);
+  var out=p(d.getDate())+'/'+p(d.getMonth()+1)+'/'+d.getFullYear();
+  if(d.getHours()||d.getMinutes())out+=' '+p(d.getHours())+':'+p(d.getMinutes());
+  return out;
+}
 function stPill(s){const m=ST_META[s]||{c:'s-new',i:'•'};return `<span class="pill ${m.c}">${m.i} ${s}</span>`;}
 function progBar(p){return `<div class="prog-row grow"><div class="bar grow"><i style="width:${p||0}%"></i></div><b>${p||0}%</b></div>`;}
 function tkCard(t,isAdmin){
@@ -733,7 +776,7 @@ function tkCard(t,isAdmin){
     <div class="dt">${t.detail}</div>
     ${showBar?progBar(t.progress):''}
     <div class="meta">
-      ${isAdmin?`<span>👤 ${t.name}</span><span>🏠 ${t.room}</span>`:`<span>🗓️ ${t.createdAt}</span>`}
+      ${isAdmin?`<span>👤 ${t.name}</span><span>🏠 ${t.room}</span>`:`<span>🗓️ ${fmtDate(t.createdAt)}</span>`}
       ${t.etaText?`<span>⏱️ ${t.etaText}</span>`:''}
       ${t.ratingScore?`<span>${'⭐'.repeat(Number(t.ratingScore))}</span>`:''}
     </div></div>`;
@@ -834,7 +877,15 @@ function head(t){
   <div style="margin:14px 0"><b style="font-size:17px">${cat?cat.ic:'🔧'} ${t.category}</b> ${urgBadge(t.urgency)}
     <p style="color:var(--muted);margin-top:5px;line-height:1.6">${t.detail}</p></div>
   ${[ST.ACC,ST.WORK,ST.REV,ST.RECV,ST.DONE].includes(t.status)?`<div class="row">${progBar(t.progress)}</div>`:''}
-  ${t.photos?`<div class="photos">${String(t.photos).split(',').filter(x=>x.trim()).map(u=>`<img class="ph" src="${u.trim()}">`).join('')}</div>`:''}`;
+  ${photosBlock(t.photos)}`;
+}
+function photosBlock(photos){
+  if(!photos)return '';
+  const list=String(photos).split(',').map(x=>x.trim()).filter(Boolean);
+  if(!list.length)return '';
+  return `<div class="sec"><h3>📷 รูปภาพประกอบ (${list.length})</h3><div class="photos">`+
+    list.map(u=>`<a href="${u}" target="_blank" rel="noopener"><img class="ph" src="${u}" loading="lazy" onerror="this.parentNode.style.display='none'"></a>`).join('')+
+    `</div></div>`;
 }
 function infoSec(t,isAdmin){
   return `<div class="sec"><h3>ℹ️ ข้อมูลงาน</h3>
@@ -842,10 +893,10 @@ function infoSec(t,isAdmin){
     <div class="kv"><span>สังกัด</span><b>${t.dept}</b></div>
     <div class="kv"><span>บ้านพัก</span><b>${t.zone} · ${t.room}</b></div>
     <div class="kv"><span>โทร</span><b>${t.phone||'-'}</b></div>`:''}
-    <div class="kv"><span>วันที่แจ้ง</span><b>${t.createdAt}</b></div>
+    <div class="kv"><span>วันที่แจ้ง</span><b>${fmtDate(t.createdAt)}</b></div>
     <div class="kv"><span>รอบซ่อม</span><b>${t.round||'-'}</b></div>
     ${t.etaText?`<div class="kv"><span>ระยะเวลาที่คาด</span><b>${t.etaText}</b></div>`:''}
-    ${t.appointDate?`<div class="kv"><span>วันนัดซ่อม</span><b>${t.appointDate} ${t.appointTime||''}</b></div>`:''}
+    ${t.appointDate?`<div class="kv"><span>วันนัดซ่อม</span><b>${fmtDate(t.appointDate)} ${t.appointTime||''}</b></div>`:''}
     ${t.adminName?`<div class="kv"><span>ผู้รับผิดชอบ</span><b>${t.adminName}</b></div>`:''}
     ${t.adminNote?`<div class="kv"><span>บันทึกล่าสุด</span><b>${t.adminNote}</b></div>`:''}</div>`;
 }
