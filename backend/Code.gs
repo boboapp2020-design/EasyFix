@@ -23,6 +23,14 @@ var DEFAULT_PIN = '1234';                 // PIN กลาง (ใช้ได�
 var TOKEN_TTL_DAYS = 30;
 var TZ = 'Asia/Bangkok';
 
+/* สิทธิ์หมวดตามประเภทบ้านพัก [รายวัน, รายเดือน, หัวหน้าแผนก, โนนสัน] — 1=แจ้งได้ */
+var RIGHT_ZONES = ['บ้านพักพนักงานรายวัน','บ้านพักพนักงานรายเดือน','บ้านพักพนักงานหัวหน้าแผนก','บ้านพักโนนสัน'];
+var RIGHTS_CAT = {
+  'ไฟฟ้า':[1,1,1,1], 'ประปา':[1,1,1,1], 'เครื่องปรับอากาศ':[0,0,1,1], 'ประตู/หน้าต่าง':[1,1,1,1],
+  'หลังคา':[0,0,0,0], 'ห้องน้ำ':[0,1,1,1], 'เฟอร์นิเจอร์':[0,0,0,0], 'อินเทอร์เน็ต/WiFi':[0,0,0,0],
+  'งานก่อสร้าง':[0,0,0,0], 'งานทาสี':[0,0,0,0], 'งานทำความสะอาด':[0,0,0,0], 'อื่นๆ':[0,0,0,0]
+};
+
 var ST = {
   NEW:      'รอตรวจสอบ',
   ACCEPTED: 'รับเรื่องแล้ว',
@@ -319,6 +327,9 @@ function apiSubmitRepair(req) {
   if (!req.detail) return { ok: false, error: 'กรุณากรอกรายละเอียด' };
   var blocked = String(emp.row[9] || '').split(',').map(function(s){return s.trim();}).filter(Boolean);
   if (blocked.indexOf(req.category) >= 0) return { ok: false, error: 'หมวด "' + req.category + '" ไม่เปิดให้แจ้งตามสิทธิ์ของคุณ' };
+  var zi = RIGHT_ZONES.indexOf(String(emp.row[4] || '').trim());
+  if (zi >= 0 && RIGHTS_CAT[req.category] && !RIGHTS_CAT[req.category][zi])
+    return { ok: false, error: 'หมวด "' + req.category + '" ไม่เปิดให้แจ้งสำหรับ' + RIGHT_ZONES[zi] };
 
   var now = new Date(), ticketId = newTicketId(), p = empProfile(emp.row);
   var photoUrls = savePhotos(req.photos, ticketId);

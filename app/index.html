@@ -509,6 +509,7 @@
 <div class="toast" id="toast"></div>
 <div class="demo-badge" id="demoBadge" style="display:none">DEMO</div>
 
+<script src="rights.js"></script>
 <script>
 /* ================= CONFIG ================= */
 const API_URL = "https://script.google.com/macros/s/AKfycbx3lJtRGasyqF_TbY3y841GYj0xkOIHh_Gb9-WcThXnKhY0BEJa2O_x3_LZiTUwkhmcXg/exec";
@@ -745,12 +746,23 @@ function forgotPin(){
 }
 
 /* ================= REPORT ================= */
+/* ===== สิทธิ์ตามประเภทบ้านพัก (จาก rights.js) + บล็อกรายคน — ไม่มีสิทธิ์ = ซ่อนไปเลย ===== */
 function blockedList(){return (state.profile&&state.profile.blockedCats?String(state.profile.blockedCats).split(','):[]).map(s=>s.trim()).filter(Boolean);}
+function zoneIdx(){return (typeof RIGHTS!=='undefined'&&state.profile&&state.profile.zone)?RIGHTS.zones.indexOf(String(state.profile.zone).trim()):-1;}
+function catAllowed(k){
+  if(blockedList().includes(k))return false;
+  const zi=zoneIdx(); if(zi<0)return true;                      // โซนไม่รู้จัก/ยังไม่ login → แสดงหมด
+  const c=RIGHTS.cat[k]; return c?!!c.allow[zi]:true;           // หมวดใหม่ที่ไม่อยู่ในไฟล์สิทธิ์ → แสดง
+}
+function subAllowed(k,s){
+  const zi=zoneIdx(); if(zi<0)return true;
+  const c=RIGHTS.cat[k]; if(!c)return true;
+  const a=c.subs[s]; return a?!!a[zi]:true;
+}
 function renderCats(){
-  const blocked=blockedList();
-  $('cats').innerHTML=CATEGORIES.map(c=>`<div class="cat ${blocked.includes(c.k)?'lock':''}" data-k="${c.k}"><img src="${c.img}" alt="${c.k}" loading="lazy"></div>`).join('');
+  const visible=CATEGORIES.filter(c=>catAllowed(c.k));
+  $('cats').innerHTML=visible.map(c=>`<div class="cat" data-k="${c.k}"><img src="${c.img}" alt="${c.k}" loading="lazy"></div>`).join('');
   document.querySelectorAll('.cat').forEach(el=>el.onclick=()=>{
-    if(el.classList.contains('lock')){toast('🔒 หมวดนี้ไม่เปิดให้แจ้งตามสิทธิ์ของคุณ');return;}
     document.querySelectorAll('.cat').forEach(x=>x.classList.remove('on'));
     el.classList.add('on');state.category=el.dataset.k;state.symptoms=[];
     renderSymptoms(el.dataset.k);$('symptom-card').style.display='block';
@@ -758,7 +770,8 @@ function renderCats(){
   });
 }
 function renderSymptoms(cat){
-  $('symptoms').innerHTML=(PROBLEMS[cat]||[]).map(s=>`<div class="chip2" data-s="${s}">${s}</div>`).join('');
+  const subs=(PROBLEMS[cat]||[]).filter(s=>subAllowed(cat,s));
+  $('symptoms').innerHTML=subs.map(s=>`<div class="chip2" data-s="${s}">${s}</div>`).join('');
   document.querySelectorAll('#symptoms .chip2').forEach(el=>el.onclick=()=>{
     el.classList.toggle('on');const s=el.dataset.s,i=state.symptoms.indexOf(s);
     if(i>=0)state.symptoms.splice(i,1);else state.symptoms.push(s);
@@ -957,7 +970,7 @@ function openEmpEdit(e){
     <div class="chips" id="ee-cats">${CATEGORIES.map(c=>{
       const on=(e.blockedCats||'').split(',').map(s=>s.trim()).includes(c.k);
       return `<div class="chip2 ${on?'on':''}" data-c="${c.k}">${c.ic} ${c.k}</div>`;}).join('')}</div>
-    <div class="hint">หมวดที่เลือก (✓) พนักงานคนนี้จะกดแจ้งไม่ได้</div>
+    <div class="hint">หมวดที่เลือก (✓) จะถูกซ่อนจากพนักงานคนนี้</div>
     <div class="err" id="ee-err"></div>
     <div style="height:14px"></div><button class="btn" onclick="saveEmp('${e.empCode}')">💾 บันทึกข้อมูล</button>
     <div style="height:8px"></div><button class="btn ghost" onclick="resetEmpPin('${e.empCode}')">🔑 รีเซ็ต PIN เป็น 1234</button>
