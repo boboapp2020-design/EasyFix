@@ -76,6 +76,8 @@ function route(action, req) {
     case 'adminSearchEmp': return apiAdminSearchEmp(req);
     case 'adminUpdateEmp': return apiAdminUpdateEmp(req);
     case 'adminResetPin':  return apiAdminResetPin(req);
+    case 'adminAddEmp':    return apiAdminAddEmp(req);
+    case 'adminDeleteEmp': return apiAdminDeleteEmp(req);
     default:             return { ok: false, error: 'unknown action: ' + action };
   }
 }
@@ -208,6 +210,27 @@ function apiAdminResetPin(req) {
   var t = requireAdmin(req); if (!t) return { ok: false, error: 'ไม่มีสิทธิ์' };
   var emp = findEmpRow(req.empCode); if (!emp) return { ok: false, error: 'ไม่พบพนักงาน' };
   empSheet().getRange(emp.rowIndex, 7).setValue('');
+  return { ok: true, data: { ok: true } };
+}
+
+/** แอดมิน: เพิ่มพนักงานใหม่ */
+function apiAdminAddEmp(req) {
+  var t = requireAdmin(req); if (!t) return { ok: false, error: 'ไม่มีสิทธิ์' };
+  var code = String(req.empCode || '').trim();
+  if (!code) return { ok: false, error: 'กรุณากรอกรหัสพนักงาน' };
+  if (findEmpRow(code)) return { ok: false, error: 'มีรหัสพนักงานนี้อยู่แล้ว' };
+  if (findAdminRow(code)) return { ok: false, error: 'รหัสนี้ถูกใช้เป็นรหัสผู้ดูแลแล้ว' };
+  var sh = empSheet();
+  var no = sh.getLastRow();  // แถวถัดไป
+  sh.appendRow([no, code, req.name || '', req.dept || '', req.zone || '', req.room || '', '', req.phone || '', '']);
+  return { ok: true, data: { ok: true } };
+}
+
+/** แอดมิน: ลบพนักงาน */
+function apiAdminDeleteEmp(req) {
+  var t = requireAdmin(req); if (!t) return { ok: false, error: 'ไม่มีสิทธิ์' };
+  var emp = findEmpRow(req.empCode); if (!emp) return { ok: false, error: 'ไม่พบพนักงาน' };
+  empSheet().deleteRow(emp.rowIndex);
   return { ok: true, data: { ok: true } };
 }
 

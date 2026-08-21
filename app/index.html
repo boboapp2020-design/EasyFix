@@ -148,7 +148,7 @@
   .uhero{position:relative;border-radius:24px;overflow:hidden;margin-bottom:16px;box-shadow:var(--sh);
     margin-top:calc(env(safe-area-inset-top,0px))}
   .uhero-bg{width:100%;display:block}
-  .p-house{width:58px;height:58px;border-radius:14px;object-fit:cover;object-position:72% 32%;flex-shrink:0;box-shadow:var(--sh-sm)}
+  .p-house{width:64px;height:64px;border-radius:14px;object-fit:cover;object-position:center 30%;flex-shrink:0;box-shadow:var(--sh-sm)}
   .uhero-text{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;padding-left:22px;color:#fff}
   .uhero-text h1{font-family:var(--display);font-size:23px;font-weight:700;text-shadow:0 1px 10px rgba(3,60,55,.25)}
   .uhero-text p{font-size:13px;opacity:.95;margin-top:3px;text-shadow:0 1px 8px rgba(3,60,55,.25)}
@@ -219,8 +219,10 @@
   .tk{background:var(--card);border-radius:var(--radius);padding:16px;box-shadow:var(--sh);border:1px solid var(--line);margin-bottom:12px;cursor:pointer;transition:.18s;position:relative}
   .tk:active{transform:scale(.99)}
   .tk.alert{border-color:var(--brand);box-shadow:var(--glow)}
-  .tk .top{display:flex;justify-content:space-between;align-items:center;margin-bottom:7px;gap:8px}
-  .tk .id{font-size:12px;color:var(--muted);font-weight:700;font-variant-numeric:tabular-nums}
+  .tk .top{display:flex;justify-content:space-between;align-items:center;margin-bottom:7px;gap:10px}
+  .tk .id{font-size:12px;color:var(--muted);font-weight:700;font-variant-numeric:tabular-nums;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:flex;align-items:center}
+  .tk .top .pill{flex-shrink:0}
+  .ndot{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--danger);margin-right:7px;flex-shrink:0;box-shadow:0 0 0 3px var(--danger-soft)}
   .tk .cat{font-size:15px;font-weight:700;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
   .tk .dt{font-size:13px;color:var(--muted);margin-top:3px;line-height:1.5}
   .tk .meta{font-size:12px;color:var(--muted);margin-top:10px;display:flex;gap:12px;flex-wrap:wrap;padding-top:10px;border-top:1px solid var(--line)}
@@ -461,6 +463,8 @@
         <input id="emp-q" placeholder="ค้นหาด้วยรหัส หรือ ชื่อพนักงาน">
       </div>
       <div class="hint">พิมพ์อย่างน้อย 2 ตัวอักษร แล้วแตะรายการเพื่อแก้ไข</div>
+      <div style="height:10px"></div>
+      <button class="btn" onclick="openEmpAdd()">➕ เพิ่มพนักงานใหม่</button>
     </div>
     <div id="emp-results"></div>
   </section>
@@ -579,6 +583,9 @@ function demoApi(action,p){return new Promise(res=>setTimeout(()=>{
     return res({ok:true,data:{employees:arr.filter(e=>e.empCode.toLowerCase().includes(q)||e.name.toLowerCase().includes(q))}}); }
   if(action==='adminUpdateEmp'){ const e=DEMO_EMP[p.empCode]; if(e)Object.assign(e,{name:p.name,dept:p.dept,zone:p.zone,room:p.room}); return res({ok:true,data:{}}); }
   if(action==='adminResetPin'){ return res({ok:true,data:{}}); }
+  if(action==='adminAddEmp'){ if(DEMO_EMP[p.empCode])return res({ok:false,error:'มีรหัสพนักงานนี้อยู่แล้ว'});
+    DEMO_EMP[p.empCode]={name:p.name,dept:p.dept,zone:p.zone,room:p.room}; return res({ok:true,data:{}}); }
+  if(action==='adminDeleteEmp'){ delete DEMO_EMP[p.empCode]; return res({ok:true,data:{}}); }
   res({ok:false,error:'demo: '+action});
 },350));}
 
@@ -770,8 +777,7 @@ function tkCard(t,isAdmin){
   const alert=isAdmin?t.status===ST.NEW:t.unreadUser;
   const showBar=[ST.ACC,ST.WORK,ST.REV].includes(t.status);
   return `<div class="tk ${alert?'alert':''}" onclick="openTicket('${t.ticketId}')">
-    ${alert?'<span class="dot"></span>':''}
-    <div class="top"><span class="id">${t.ticketId}</span>${stPill(t.status)}</div>
+    <div class="top"><span class="id">${alert?'<i class="ndot"></i>':''}${t.ticketId}</span>${stPill(t.status)}</div>
     <div class="cat">${cat?cat.ic:'🔧'} ${t.category} ${urgBadge(t.urgency)}</div>
     <div class="dt">${t.detail}</div>
     ${showBar?progBar(t.progress):''}
@@ -847,8 +853,38 @@ function openEmpEdit(e){
     <div class="err" id="ee-err"></div>
     <div style="height:14px"></div><button class="btn" onclick="saveEmp('${e.empCode}')">💾 บันทึกข้อมูล</button>
     <div style="height:8px"></div><button class="btn ghost" onclick="resetEmpPin('${e.empCode}')">🔑 รีเซ็ต PIN เป็น 1234</button>
+    <div style="height:8px"></div><button class="btn danger" onclick="deleteEmp('${e.empCode}','${(e.name||'').replace(/'/g,'')}')">🗑️ ลบพนักงานคนนี้</button>
     <div style="height:8px"></div><button class="btn ghost" onclick="closeModal()">ปิด</button>`;
   $('modal').classList.add('show');
+}
+function openEmpAdd(){
+  $('sheet').innerHTML=`
+    <h2 style="font-family:var(--display);text-align:center">➕ เพิ่มพนักงานใหม่</h2>
+    <p class="sub-c">กรอกข้อมูล แล้วเข้าระบบด้วย PIN 1234</p>
+    <label class="fl">รหัสพนักงาน *</label><input id="ea-code" inputmode="numeric" placeholder="เช่น 30001">
+    <label class="fl">ชื่อ - สกุล *</label><input id="ea-name" placeholder="เช่น นาย สมชาย ใจดี">
+    <label class="fl">สังกัด</label><input id="ea-dept" placeholder="เช่น แผนกบริการไร่">
+    <label class="fl">จุดบ้านพัก</label><input id="ea-zone" placeholder="เช่น บ้านพักพนักงานรายเดือน">
+    <label class="fl">เลขที่ห้อง</label><input id="ea-room" placeholder="เช่น A01">
+    <label class="fl">เบอร์โทร</label><input id="ea-phone" inputmode="tel" placeholder="08x-xxx-xxxx">
+    <div class="err" id="ea-err"></div>
+    <div style="height:14px"></div><button class="btn" onclick="saveNewEmp()">✅ เพิ่มพนักงาน</button>
+    <div style="height:8px"></div><button class="btn ghost" onclick="closeModal()">ยกเลิก</button>`;
+  $('modal').classList.add('show');
+}
+async function saveNewEmp(){
+  const code=$('ea-code').value.trim(),name=$('ea-name').value.trim(),err=$('ea-err');err.style.display='none';
+  if(!code)return showErr(err,'กรุณากรอกรหัสพนักงาน');
+  if(!name)return showErr(err,'กรุณากรอกชื่อ-สกุล');
+  const r=await api('adminAddEmp',{token:state.token,empCode:code,name,dept:$('ea-dept').value.trim(),zone:$('ea-zone').value.trim(),room:$('ea-room').value.trim(),phone:$('ea-phone').value.trim()});
+  if(!r.ok)return showErr(err,r.error||'เพิ่มไม่สำเร็จ');
+  closeModal();toast('✅ เพิ่มพนักงาน '+name+' แล้ว');$('emp-q').value=code;searchEmp(code);
+}
+async function deleteEmp(code,name){
+  if(!confirm('ยืนยันลบพนักงาน '+name+' (รหัส '+code+') ?\nการลบนี้ไม่สามารถย้อนกลับได้'))return;
+  const r=await api('adminDeleteEmp',{token:state.token,empCode:code});
+  if(!r.ok)return toast(r.error||'ลบไม่สำเร็จ');
+  closeModal();toast('🗑️ ลบพนักงานแล้ว');const q=$('emp-q').value.trim();if(q.length>=2)searchEmp(q);
 }
 async function saveEmp(code){
   const r=await api('adminUpdateEmp',{token:state.token,empCode:code,
