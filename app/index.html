@@ -114,18 +114,13 @@
 
   /* ---------- login ---------- */
   #s-login{padding:0 0 40px}
-  .hero-logo{position:relative;overflow:hidden;text-align:center;
-    padding:calc(env(safe-area-inset-top,0px) + 30px) 20px 34px;
-    background:linear-gradient(168deg,#d5f4ee 0%,#e9faf6 55%,var(--bg) 100%);border-radius:0 0 42px 42px}
-  body.admin .hero-logo{background:linear-gradient(168deg,#dbe2ff 0%,#eef1ff 55%,var(--bg) 100%)}
-  .hero-logo::before{content:"";position:absolute;width:220px;height:220px;border-radius:50%;top:-70px;left:-50px;
-    background:radial-gradient(circle,rgba(42,208,190,.4),transparent 70%);filter:blur(6px)}
-  .hero-logo::after{content:"";position:absolute;width:180px;height:180px;border-radius:50%;top:20px;right:-50px;
-    background:radial-gradient(circle,rgba(15,181,166,.28),transparent 70%);filter:blur(6px)}
-  .hero-icon{position:relative;width:150px;height:150px;border-radius:36px;display:block;margin:0 auto;
-    box-shadow:0 20px 40px -14px rgba(11,131,120,.5);animation:pop .55s cubic-bezier(.2,.8,.2,1.2)}
-  @keyframes pop{from{opacity:0;transform:scale(.72) translateY(10px)}to{opacity:1;transform:none}}
-  .hero-tag{position:relative;color:var(--brand-deep);font-size:15px;font-weight:600;margin-top:16px}
+  .hero-banner-wrap{overflow:hidden;border-radius:0 0 34px 34px;padding-top:env(safe-area-inset-top,0px);
+    background:#eaf6f8;box-shadow:0 14px 30px -16px rgba(11,131,120,.35)}
+  .hero-banner-inner{position:relative;line-height:0}
+  .hero-banner{width:100%;display:block}
+  .hero-overlay-icon{position:absolute;top:6%;left:59%;width:22%;border-radius:22%;
+    filter:drop-shadow(0 10px 16px rgba(11,131,120,.35));animation:pop .55s cubic-bezier(.2,.8,.2,1.2)}
+  @keyframes pop{from{opacity:0;transform:scale(.7)}to{opacity:1;transform:none}}
   .login-body{padding:0 16px}
   .login-card{margin-top:-18px;position:relative;z-index:2}
   .login-card h2{font-family:var(--display);text-align:center;font-size:22px;font-weight:700}
@@ -270,10 +265,10 @@
 
   <!-- ============ LOGIN ============ -->
   <section id="s-login" class="screen active">
-    <div class="hero-logo">
-      <img class="hero-icon" src="icon-512.png" alt="Easy Fix">
-      <p class="hero-tag">ระบบแจ้งซ่อมบ้านพักพนักงาน</p>
-    </div>
+    <div class="hero-banner-wrap"><div class="hero-banner-inner">
+      <img class="hero-banner" src="hero-banner.jpg" alt="Easy Fix — ระบบแจ้งซ่อมบ้านพักพนักงาน">
+      <img class="hero-overlay-icon" src="icon-512.png" alt="Easy Fix">
+    </div></div>
     <div class="login-body">
       <div class="card login-card">
         <h2>ยินดีต้อนรับ 👋</h2>
