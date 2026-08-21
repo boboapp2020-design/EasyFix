@@ -781,10 +781,14 @@ $('btn-submit').onclick=async()=>{
 /* ================= SHARED RENDER ================= */
 function fmtDate(s){
   if(!s)return '-';
-  if(typeof s==='string'&&s.indexOf('T')<0)return s;   // "yyyy-MM-dd HH:mm" อยู่แล้ว
-  const d=new Date(s); if(isNaN(d.getTime()))return s;
+  s=String(s);
+  // "yyyy-MM-dd HH:mm" หรือ "yyyy-MM-dd" → วว/ดด/ปปปป ชม:นาที
+  let m=s.match(/^(\d{4})-(\d{2})-(\d{2})(?:[ T](\d{2}):(\d{2}))?/);
+  if(!m)return s;                                        // ไม่ใช่รูปแบบวันที่ → คืนค่าเดิม
+  if(s.indexOf('T')<0)return m[3]+'/'+m[2]+'/'+m[1]+(m[4]?' '+m[4]+':'+m[5]:'');
+  const d=new Date(s); if(isNaN(d.getTime()))return s;   // ISO → เวลาท้องถิ่นเครื่อง
   const p=n=>('0'+n).slice(-2);
-  var out=p(d.getDate())+'/'+p(d.getMonth()+1)+'/'+d.getFullYear();
+  let out=p(d.getDate())+'/'+p(d.getMonth()+1)+'/'+d.getFullYear();
   if(d.getHours()||d.getMinutes())out+=' '+p(d.getHours())+':'+p(d.getMinutes());
   return out;
 }
@@ -809,7 +813,7 @@ function timeline(logs){
   if(!logs||!logs.length)return '';
   return `<div class="sec"><h3>📜 ประวัติการดำเนินงาน</h3><div class="tl">`+
     logs.slice().reverse().map(l=>`<div class="ev ${l.by==='user'?'u':''}">
-      <b>${l.action}</b><small>${l.time} · ${l.byName||(l.by==='user'?'ผู้แจ้ง':'ผู้ดูแล')}${l.progress!==''&&l.progress!==undefined?' · '+l.progress+'%':''}</small>
+      <b>${l.action}</b><small>${fmtDate(l.time)} · ${l.byName||(l.by==='user'?'ผู้แจ้ง':'ผู้ดูแล')}${l.progress!==''&&l.progress!==undefined?' · '+l.progress+'%':''}</small>
       ${l.detail?`<p>${l.detail}</p>`:''}</div>`).join('')+`</div></div>`;
 }
 

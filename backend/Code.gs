@@ -243,14 +243,18 @@ var C = {
   progress:22, adminNote:23, etaText:24, acceptedAt:25, closedAt:26, userAcceptedAt:27,
   unreadUser:28, unreadAdmin:29, adminName:30
 };
+/** แปลงค่า Date จากชีตเป็นข้อความอ่านง่าย */
+function fdt(v) { return (v instanceof Date) ? Utilities.formatDate(v, TZ, 'yyyy-MM-dd HH:mm') : (v || ''); }   // วันที่+เวลา
+function fdo(v) { return (v instanceof Date) ? Utilities.formatDate(v, TZ, 'yyyy-MM-dd') : (v || ''); }         // วันที่อย่างเดียว
+function fto(v) { return (v instanceof Date) ? Utilities.formatDate(v, TZ, 'HH:mm') : (v || ''); }              // เวลาอย่างเดียว
 function rowToTicket(r) {
   return {
-    ticketId:r[0], createdAt:r[1], empCode:String(r[2]), name:r[3], dept:r[4], zone:r[5], room:r[6],
+    ticketId:r[0], createdAt:fdt(r[1]), empCode:String(r[2]), name:r[3], dept:r[4], zone:r[5], room:r[6],
     phone:r[7], category:r[8], detail:r[9], photos:r[10], status:r[11]||ST.NEW,
-    appointDate:r[12], appointTime:r[13], hrNote:r[14], round:r[15], doneAt:r[16],
+    appointDate:fdo(r[12]), appointTime:fto(r[13]), hrNote:r[14], round:r[15], doneAt:fdt(r[16]),
     ratingScore:r[17], ratingComment:r[18], urgency:r[19]||'ปกติ', symptoms:r[20]||'',
     progress:Number(r[21]||0), adminNote:r[22]||'', etaText:r[23]||'',
-    acceptedAt:r[24]||'', closedAt:r[25]||'', userAcceptedAt:r[26]||'',
+    acceptedAt:fdt(r[24]), closedAt:fdt(r[25]), userAcceptedAt:fdt(r[26]),
     unreadUser:!!r[27], unreadAdmin:!!r[28], adminName:r[29]||''
   };
 }
@@ -275,7 +279,7 @@ function getLogs(ticketId) {
   var d = sh.getDataRange().getValues(), out = [];
   for (var i = 1; i < d.length; i++) {
     if (String(d[i][1]) === String(ticketId))
-      out.push({ time:d[i][0], by:d[i][2], byName:d[i][3], action:d[i][4], detail:d[i][5], progress:d[i][6], status:d[i][7] });
+      out.push({ time:fdt(d[i][0]), by:d[i][2], byName:d[i][3], action:d[i][4], detail:d[i][5], progress:d[i][6], status:d[i][7] });
   }
   return out;
 }
