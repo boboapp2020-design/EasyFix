@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="th" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="icon" type="image/png" href="icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600;700&family=Kanit:wght@500;600;700&display=swap" rel="stylesheet">
+<title>คู่มือ Easy Fix</title>
+<style>
+  :root{--brand:#0fb5a6;--deep:#0b8378;--ink:#0c1b21;--muted:#5c7079;--soft:#e2f9f5;
+    --adm:#4f6ef7;--adm-soft:#e8ecff;--line:rgba(12,40,45,.12);--bg:#eef4f5;color-scheme:light}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:"IBM Plex Sans Thai",system-ui,sans-serif;background:var(--bg);color:var(--ink);line-height:1.7}
+  .wrap{max-width:720px;margin:0 auto;padding:24px 18px 60px}
+  header{text-align:center;padding:26px 0 18px}
+  header img{width:84px;height:84px;border-radius:22px;box-shadow:0 12px 26px -8px rgba(15,181,166,.45)}
+  header h1{font-family:Kanit,sans-serif;font-size:30px;margin-top:12px}
+  header p{color:var(--muted)}
+  .card{background:#fff;border:1px solid var(--line);border-radius:20px;padding:22px;margin-top:18px;
+    box-shadow:0 6px 18px -8px rgba(12,40,45,.12)}
+  h2{font-family:Kanit,sans-serif;font-size:20px;display:flex;align-items:center;gap:10px;margin-bottom:6px}
+  h2 .tag{font-size:12px;font-weight:700;padding:4px 12px;border-radius:999px}
+  .t-user{background:var(--soft);color:var(--deep)} .t-adm{background:var(--adm-soft);color:var(--adm)}
+  .sub{color:var(--muted);font-size:14px;margin-bottom:14px}
+  ol.steps{list-style:none;counter-reset:s}
+  ol.steps li{counter-increment:s;position:relative;padding:10px 0 10px 46px;border-bottom:1px dashed var(--line)}
+  ol.steps li:last-child{border-bottom:none}
+  ol.steps li::before{content:counter(s);position:absolute;left:0;top:10px;width:30px;height:30px;border-radius:10px;
+    background:var(--soft);color:var(--deep);font-weight:700;display:grid;place-items:center;font-size:14px}
+  .adm ol.steps li::before{background:var(--adm-soft);color:var(--adm)}
+  li b{display:block} li small{color:var(--muted)}
+  .note{background:#fdf0cf;border-radius:12px;padding:12px 14px;font-size:14px;margin-top:12px}
+  .kv{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+  .kv span{background:var(--soft);color:var(--deep);border-radius:999px;padding:6px 14px;font-size:13px;font-weight:600}
+  .flow{background:#f5fafa;border-radius:14px;padding:14px;font-size:13.5px;text-align:center;margin-top:12px;line-height:2}
+  .flow b{color:var(--deep)}
+  footer{text-align:center;color:var(--muted);font-size:12.5px;margin-top:26px}
+  a.btn{display:block;text-align:center;background:linear-gradient(135deg,#2ad0be,var(--deep));color:#fff;text-decoration:none;
+    font-weight:700;padding:14px;border-radius:14px;margin-top:18px;box-shadow:0 12px 26px -8px rgba(15,181,166,.5)}
+  @media print{body{background:#fff}.card{box-shadow:none;break-inside:avoid}a.btn{display:none}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <img src="icon-192.png" alt="Easy Fix">
+    <h1>คู่มือการใช้งาน Easy Fix</h1>
+    <p>ระบบแจ้งซ่อมบ้านพักพนักงาน</p>
+    <div class="kv"><span>🌐 เข้าใช้: boboapp2020-design.github.io/EasyFix</span><span>🔑 PIN เริ่มต้น: 1234</span></div>
+  </header>
+
+  <!-- ============ พนักงาน ============ -->
+  <div class="card">
+    <h2>👤 สำหรับพนักงาน <span class="tag t-user">USER</span></h2>
+    <p class="sub">แจ้งซ่อม ติดตามสถานะ และประเมินงาน</p>
+    <ol class="steps">
+      <li><b>ติดตั้งลงมือถือ (ครั้งแรก)</b><small>เปิดลิงก์ด้วย Chrome → เมนู ⋮ → "เพิ่มไปยังหน้าจอโฮม" → ได้ไอคอน Easy Fix เหมือนแอป</small></li>
+      <li><b>เข้าสู่ระบบ</b><small>กรอก <u>รหัสพนักงาน</u> + PIN <u>1234</u> (เปลี่ยน PIN ส่วนตัวได้ที่เมนู ☰ มุมขวาบน)</small></li>
+      <li><b>แจ้งซ่อม</b><small>แตะ "➕ แจ้งซ่อมใหม่" → เลือกหมวดงาน → แตะอาการที่พบ (เลือกได้หลายข้อ) → เลือกความเร่งด่วน → ใส่เบอร์โทร → แนบรูป (ถ้ามี) → ส่ง</small></li>
+      <li><b>ติดตามสถานะ</b><small>แท็บ "📋 งานซ่อม" — มีจุดแดง ● = มีอัปเดตใหม่ แตะดูรายละเอียด ความคืบหน้า % และประวัติการดำเนินงาน</small></li>
+      <li><b>ตรวจรับงาน + ให้คะแนน</b><small>เมื่อสถานะเป็น "รอตรวจรับ" → ตรวจงานจริง → กด "👍 รับงาน" → ให้ดาว ⭐ 1-5</small></li>
+    </ol>
+    <div class="flow">แจ้งซ่อม → <b>รอตรวจสอบ</b> → <b>รับเรื่องแล้ว</b> → <b>กำลังดำเนินการ</b> → <b>รอตรวจรับ</b> → กดรับงาน → ให้ดาว → <b>เสร็จสมบูรณ์</b></div>
+    <div class="note">🔒 ลืม PIN / เข้าไม่ได้ → แตะแบนเนอร์ "ลืม PIN" ในหน้าแรก เพื่อทัก LINE (soulina33) หรือโทร 020-917-35976</div>
+  </div>
+
+  <!-- ============ แอดมิน ============ -->
+  <div class="card adm">
+    <h2>🛠️ สำหรับผู้ดูแลงานซ่อม <span class="tag t-adm">ADMIN</span></h2>
+    <p class="sub">เข้าด้วยรหัสแอดมิน (เช่น admin01) — ระบบพาเข้าโหมดผู้ดูแลอัตโนมัติ</p>
+    <ol class="steps">
+      <li><b>รับเรื่องงานใหม่</b><small>หน้า "📊 ภาพรวม" เห็นงานรอตรวจสอบ → แตะใบงาน → ระบุระยะเวลา + รายละเอียด → "✅ รับเรื่อง" (หรือ "⛔ ดำเนินการไม่ได้" พร้อมเหตุผล)</small></li>
+      <li><b>อัปเดตความคืบหน้า</b><small>เลื่อนแถบ % + บันทึกสิ่งที่ทำ → ผู้แจ้งเห็นทันที ระบบเก็บประวัติทุกครั้ง</small></li>
+      <li><b>ปิดงาน</b><small>ซ่อมเสร็จ → "🏁 ปิดงาน" → ระบบแจ้งผู้แจ้งให้ตรวจรับและให้คะแนน</small></li>
+      <li><b>จัดการพนักงาน</b><small>แท็บ "👥 พนักงาน" → ค้นหาด้วยรหัส/ชื่อ → แก้ไขข้อมูล·ย้ายห้อง / เพิ่มพนักงานใหม่ / ลบ / รีเซ็ต PIN เป็น 1234 / ตั้ง 🔒 หมวดที่ห้ามแจ้ง — มีผลทันที</small></li>
+      <li><b>ดูสถิติ + ส่งออกรายงาน</b><small>หน้า "ภาพรวม" ล่างสุด: กราฟตามสถานะ/หมวด/ความเร่งด่วน + ปุ่ม "📥 ส่งออกเป็น Excel"</small></li>
+    </ol>
+    <div class="note">💡 ข้อมูลทั้งหมดเก็บใน Google Sheets "Easy Fix" — เปิดดู/แก้ไขในชีตได้โดยตรง รูปแนบเก็บใน Google Drive</div>
+  </div>
+
+  <a class="btn" href="index.html">🔧 เปิดแอป Easy Fix</a>
+  <footer>Easy Fix v1.0.0 · ผู้พัฒนา สุรศักดิ์ นามวรรณ · ผู้ติดต่อ-ประสานงาน สุลีนา พมมะเทบ</footer>
+</div>
+</body>
+</html>

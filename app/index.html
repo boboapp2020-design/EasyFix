@@ -176,6 +176,9 @@
   .cat img{width:100%;height:auto;display:block}
   .cat:active{transform:scale(.95)}
   .cat.on{border-color:var(--brand);box-shadow:var(--glow);transform:translateY(-2px)}
+  .cat{position:relative}
+  .cat.lock{opacity:.42;filter:grayscale(.6)}
+  .cat.lock::after{content:"🔒";position:absolute;top:6px;right:8px;font-size:15px;filter:none;opacity:1}
   .urg{display:flex;gap:10px}
   .urg .u{flex:1;border:1.5px solid var(--line);border-radius:16px;padding:14px 4px;text-align:center;cursor:pointer;background:var(--card);transition:.18s;box-shadow:var(--sh-sm)}
   .urg .u .ic{font-size:24px} .urg .u b{display:block;font-size:14px;margin-top:6px} .urg .u small{display:block;font-size:10.5px;color:var(--muted);margin-top:2px}
@@ -570,7 +573,7 @@ function demoApi(action,p){return new Promise(res=>setTimeout(()=>{
       return res({ok:true,data:{token:'demo',profile:{empCode:'admin01',name:'ผู้ดูแลงานซ่อม',position:'ฝ่ายซ่อมบำรุง',role:'admin'}}}); }
     const e=DEMO_EMP[p.empCode]; if(!e)return res({ok:false,error:'ไม่พบรหัสนี้ในระบบ (ลอง 19474 / 19452 / admin01)'});
     if(p.pin!=='1234')return res({ok:false,error:'PIN ไม่ถูกต้อง'});
-    return res({ok:true,data:{token:'demo',profile:Object.assign({empCode:p.empCode,role:'user'},e)}}); }
+    return res({ok:true,data:{token:'demo',profile:Object.assign({empCode:p.empCode,role:'user',blockedCats:e.blockedCats||''},e)}}); }
   if(action==='myTickets'){const t=DEMO_TK.filter(x=>x.empCode===(state.profile?state.profile.empCode:'19474')).slice().reverse();
     return res({ok:true,data:{tickets:t,unread:t.filter(x=>x.unreadUser).length}});}
   if(action==='ticketDetail'){const t=T(p.ticketId); if(!t)return res({ok:false,error:'ไม่พบงาน'});
@@ -602,9 +605,9 @@ function demoApi(action,p){return new Promise(res=>setTimeout(()=>{
     push(t,'user',t.name,'ให้คะแนน',p.score+' ดาว '+(p.comment||''),100,ST.DONE);return res({ok:true,data:{}});}
   if(action==='changePin'){ if(String(p.oldPin)!=='1234')return res({ok:false,error:'PIN เดิมไม่ถูกต้อง'}); return res({ok:true,data:{}}); }
   if(action==='adminSearchEmp'){ const q=String(p.q||'').toLowerCase();
-    const arr=Object.keys(DEMO_EMP).map(c=>Object.assign({empCode:c,phone:'08x-xxx-xxxx',hasPin:false},DEMO_EMP[c]));
+    const arr=Object.keys(DEMO_EMP).map(c=>Object.assign({empCode:c,phone:'08x-xxx-xxxx',hasPin:false,blockedCats:DEMO_EMP[c].blockedCats||''},DEMO_EMP[c]));
     return res({ok:true,data:{employees:arr.filter(e=>e.empCode.toLowerCase().includes(q)||e.name.toLowerCase().includes(q))}}); }
-  if(action==='adminUpdateEmp'){ const e=DEMO_EMP[p.empCode]; if(e)Object.assign(e,{name:p.name,dept:p.dept,zone:p.zone,room:p.room}); return res({ok:true,data:{}}); }
+  if(action==='adminUpdateEmp'){ const e=DEMO_EMP[p.empCode]; if(e)Object.assign(e,{name:p.name,dept:p.dept,zone:p.zone,room:p.room,blockedCats:p.blockedCats||''}); return res({ok:true,data:{}}); }
   if(action==='adminResetPin'){ return res({ok:true,data:{}}); }
   if(action==='adminAddEmp'){ if(DEMO_EMP[p.empCode])return res({ok:false,error:'มีรหัสพนักงานนี้อยู่แล้ว'});
     DEMO_EMP[p.empCode]={name:p.name,dept:p.dept,zone:p.zone,room:p.room}; return res({ok:true,data:{}}); }
@@ -649,8 +652,8 @@ function go(name){
 function openMenu(){
   const p=state.profile||{}, name=p.name||'', initial=String(name).replace(/^(นาย|นาง|น\.ส\.|ท้าว)\s*/,'').charAt(0)||'👤';
   const items = state.role==='admin'
-    ? [{ic:'🔑',t:'เปลี่ยน PIN',s:'ตั้งรหัสใหม่',fn:'openChangePin'},{ic:'ℹ️',t:'เกี่ยวกับแอป',s:'เวอร์ชัน & ผู้พัฒนา',fn:'openAbout'}]
-    : [{ic:'🔑',t:'เปลี่ยน PIN',s:'ตั้งรหัส PIN ส่วนตัวใหม่',fn:'openChangePin'},{ic:'ℹ️',t:'เกี่ยวกับแอป',s:'เวอร์ชัน & ผู้พัฒนา',fn:'openAbout'}];
+    ? [{ic:'🔑',t:'เปลี่ยน PIN',s:'ตั้งรหัสใหม่',fn:'openChangePin'},{ic:'📖',t:'คู่มือการใช้งาน',s:'วิธีใช้แอปทีละขั้น',fn:'openManual'},{ic:'ℹ️',t:'เกี่ยวกับแอป',s:'เวอร์ชัน & ผู้พัฒนา',fn:'openAbout'}]
+    : [{ic:'🔑',t:'เปลี่ยน PIN',s:'ตั้งรหัส PIN ส่วนตัวใหม่',fn:'openChangePin'},{ic:'📖',t:'คู่มือการใช้งาน',s:'วิธีใช้แอปทีละขั้น',fn:'openManual'},{ic:'ℹ️',t:'เกี่ยวกับแอป',s:'เวอร์ชัน & ผู้พัฒนา',fn:'openAbout'}];
   $('drawer').innerHTML=`
     <div class="drawer-head"><div class="da">${initial}</div><div><b>${name}</b><small>${state.role==='admin'?(p.position||'ผู้ดูแลระบบ'):'รหัสพนักงาน '+(p.empCode||'')}</small></div></div>
     ${items.map(i=>`<div class="menu-item" onclick="closeMenu();${i.fn?i.fn+'()':"go('"+i.go+"')"}"><span class="mi-ic">${i.ic}</span><div>${i.t}<div class="hint" style="font-weight:400">${i.s}</div></div></div>`).join('')}
@@ -660,6 +663,7 @@ function openMenu(){
   $('drawer').classList.add('show');$('drawer-scrim').classList.add('show');
 }
 function closeMenu(){$('drawer').classList.remove('show');$('drawer-scrim').classList.remove('show');}
+function openManual(){window.open('manual.html','_blank');}
 function openAbout(){
   $('sheet').innerHTML=`
     <div style="text-align:center">
@@ -715,7 +719,7 @@ $('btn-login').onclick=async()=>{
 };
 function enterApp(){
   if(state.role==='admin'){ $('a-hi').textContent='สวัสดี, '+state.profile.name; $('a-sub').textContent=state.profile.position||'ผู้ดูแลงานซ่อม'; go('adash'); }
-  else{ renderProfile(); go('home'); }
+  else{ renderProfile(); renderCats(); go('home'); }
 }
 function renderProfile(){
   const p=state.profile;
@@ -741,9 +745,12 @@ function forgotPin(){
 }
 
 /* ================= REPORT ================= */
+function blockedList(){return (state.profile&&state.profile.blockedCats?String(state.profile.blockedCats).split(','):[]).map(s=>s.trim()).filter(Boolean);}
 function renderCats(){
-  $('cats').innerHTML=CATEGORIES.map(c=>`<div class="cat" data-k="${c.k}"><img src="${c.img}" alt="${c.k}" loading="lazy"></div>`).join('');
+  const blocked=blockedList();
+  $('cats').innerHTML=CATEGORIES.map(c=>`<div class="cat ${blocked.includes(c.k)?'lock':''}" data-k="${c.k}"><img src="${c.img}" alt="${c.k}" loading="lazy"></div>`).join('');
   document.querySelectorAll('.cat').forEach(el=>el.onclick=()=>{
+    if(el.classList.contains('lock')){toast('🔒 หมวดนี้ไม่เปิดให้แจ้งตามสิทธิ์ของคุณ');return;}
     document.querySelectorAll('.cat').forEach(x=>x.classList.remove('on'));
     el.classList.add('on');state.category=el.dataset.k;state.symptoms=[];
     renderSymptoms(el.dataset.k);$('symptom-card').style.display='block';
@@ -946,12 +953,18 @@ function openEmpEdit(e){
     <label class="fl">จุดบ้านพัก</label><input id="ee-zone" value="${(e.zone||'').replace(/"/g,'&quot;')}">
     <label class="fl">เลขที่ห้อง</label><input id="ee-room" value="${(e.room||'').replace(/"/g,'&quot;')}">
     <label class="fl">เบอร์โทร</label><input id="ee-phone" value="${(e.phone||'').replace(/"/g,'&quot;')}">
+    <label class="fl">🔒 หมวดที่ห้ามแจ้ง (แตะเพื่อสลับ)</label>
+    <div class="chips" id="ee-cats">${CATEGORIES.map(c=>{
+      const on=(e.blockedCats||'').split(',').map(s=>s.trim()).includes(c.k);
+      return `<div class="chip2 ${on?'on':''}" data-c="${c.k}">${c.ic} ${c.k}</div>`;}).join('')}</div>
+    <div class="hint">หมวดที่เลือก (✓) พนักงานคนนี้จะกดแจ้งไม่ได้</div>
     <div class="err" id="ee-err"></div>
     <div style="height:14px"></div><button class="btn" onclick="saveEmp('${e.empCode}')">💾 บันทึกข้อมูล</button>
     <div style="height:8px"></div><button class="btn ghost" onclick="resetEmpPin('${e.empCode}')">🔑 รีเซ็ต PIN เป็น 1234</button>
     <div style="height:8px"></div><button class="btn danger" onclick="deleteEmp('${e.empCode}','${(e.name||'').replace(/'/g,'')}')">🗑️ ลบพนักงานคนนี้</button>
     <div style="height:8px"></div><button class="btn ghost" onclick="closeModal()">ปิด</button>`;
   $('modal').classList.add('show');
+  document.querySelectorAll('#ee-cats .chip2').forEach(el=>el.onclick=()=>el.classList.toggle('on'));
 }
 function openEmpAdd(){
   $('sheet').innerHTML=`
@@ -983,8 +996,9 @@ async function deleteEmp(code,name){
   closeModal();toast('🗑️ ลบพนักงานแล้ว');const q=$('emp-q').value.trim();if(q.length>=2)searchEmp(q);
 }
 async function saveEmp(code){
+  const blocked=[...document.querySelectorAll('#ee-cats .chip2.on')].map(el=>el.dataset.c).join(', ');
   const r=await api('adminUpdateEmp',{token:state.token,empCode:code,
-    name:$('ee-name').value.trim(),dept:$('ee-dept').value.trim(),zone:$('ee-zone').value.trim(),room:$('ee-room').value.trim(),phone:$('ee-phone').value.trim()});
+    name:$('ee-name').value.trim(),dept:$('ee-dept').value.trim(),zone:$('ee-zone').value.trim(),room:$('ee-room').value.trim(),phone:$('ee-phone').value.trim(),blockedCats:blocked});
   if(!r.ok)return showErr($('ee-err'),r.error||'บันทึกไม่สำเร็จ');
   closeModal();toast('✅ บันทึกข้อมูลแล้ว มีผลทันที');const q=$('emp-q').value.trim();if(q.length>=2)searchEmp(q);
 }

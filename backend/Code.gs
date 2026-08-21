@@ -132,7 +132,8 @@ function findAdminRow(code) {
   return null;
 }
 function empProfile(row) {
-  return { empCode: String(row[1]), name: row[2], dept: row[3], zone: row[4], room: row[5], phone: row[7] || '', role: 'user' };
+  return { empCode: String(row[1]), name: row[2], dept: row[3], zone: row[4], room: row[5], phone: row[7] || '',
+           blockedCats: String(row[9] || ''), role: 'user' };   // J = หมวดที่ห้ามแจ้ง (คั่นด้วย ,)
 }
 
 function apiLogin(req) {
@@ -187,7 +188,7 @@ function apiAdminSearchEmp(req) {
     var code = String(data[i][1]), name = String(data[i][2]);
     if (!code) continue;
     if (!q || code.toLowerCase().indexOf(q) >= 0 || name.toLowerCase().indexOf(q) >= 0)
-      out.push({ empCode: code, name: name, dept: data[i][3], zone: data[i][4], room: data[i][5], phone: data[i][7] || '', hasPin: !!data[i][6] });
+      out.push({ empCode: code, name: name, dept: data[i][3], zone: data[i][4], room: data[i][5], phone: data[i][7] || '', hasPin: !!data[i][6], blockedCats: String(data[i][9] || '') });
   }
   return { ok: true, data: { employees: out } };
 }
@@ -202,6 +203,7 @@ function apiAdminUpdateEmp(req) {
   if (req.zone  !== undefined) sh.getRange(r, 5).setValue(req.zone);
   if (req.room  !== undefined) sh.getRange(r, 6).setValue(req.room);
   if (req.phone !== undefined) sh.getRange(r, 8).setValue(req.phone);
+  if (req.blockedCats !== undefined) sh.getRange(r, 10).setValue(req.blockedCats);   // J = หมวดที่ห้ามแจ้ง
   return { ok: true, data: { ok: true } };
 }
 
@@ -315,6 +317,8 @@ function apiSubmitRepair(req) {
   var emp = findEmpRow(t.code);
   if (!emp) return { ok: false, error: 'ไม่พบพนักงาน' };
   if (!req.detail) return { ok: false, error: 'กรุณากรอกรายละเอียด' };
+  var blocked = String(emp.row[9] || '').split(',').map(function(s){return s.trim();}).filter(Boolean);
+  if (blocked.indexOf(req.category) >= 0) return { ok: false, error: 'หมวด "' + req.category + '" ไม่เปิดให้แจ้งตามสิทธิ์ของคุณ' };
 
   var now = new Date(), ticketId = newTicketId(), p = empProfile(emp.row);
   var photoUrls = savePhotos(req.photos, ticketId);
