@@ -642,8 +642,8 @@ function go(name){
 function openMenu(){
   const p=state.profile||{}, name=p.name||'', initial=String(name).replace(/^(นาย|นาง|น\.ส\.|ท้าว)\s*/,'').charAt(0)||'👤';
   const items = state.role==='admin'
-    ? [{ic:'📊',t:'ภาพรวม',s:'แดชบอร์ด',go:'adash'},{ic:'🗂️',t:'คิวงานซ่อม',s:'จัดการงานทั้งหมด',go:'aqueue'},{ic:'👥',t:'จัดการพนักงาน',s:'แก้ไขข้อมูล/รีเซ็ต PIN',go:'aemp'},{ic:'🔑',t:'เปลี่ยน PIN',s:'ตั้งรหัสใหม่',fn:'openChangePin'},{ic:'ℹ️',t:'เกี่ยวกับแอป',s:'เวอร์ชัน & ผู้พัฒนา',fn:'openAbout'}]
-    : [{ic:'🏠',t:'หน้าหลัก',s:'ข้อมูลบ้านพัก',go:'home'},{ic:'➕',t:'แจ้งซ่อมใหม่',s:'ส่งเรื่องซ่อม',go:'report'},{ic:'📋',t:'งานซ่อมของฉัน',s:'ติดตามสถานะ',go:'tickets'},{ic:'🔑',t:'เปลี่ยน PIN',s:'ตั้งรหัส PIN ส่วนตัวใหม่',fn:'openChangePin'},{ic:'ℹ️',t:'เกี่ยวกับแอป',s:'เวอร์ชัน & ผู้พัฒนา',fn:'openAbout'}];
+    ? [{ic:'🔑',t:'เปลี่ยน PIN',s:'ตั้งรหัสใหม่',fn:'openChangePin'},{ic:'ℹ️',t:'เกี่ยวกับแอป',s:'เวอร์ชัน & ผู้พัฒนา',fn:'openAbout'}]
+    : [{ic:'🔑',t:'เปลี่ยน PIN',s:'ตั้งรหัส PIN ส่วนตัวใหม่',fn:'openChangePin'},{ic:'ℹ️',t:'เกี่ยวกับแอป',s:'เวอร์ชัน & ผู้พัฒนา',fn:'openAbout'}];
   $('drawer').innerHTML=`
     <div class="drawer-head"><div class="da">${initial}</div><div><b>${name}</b><small>${state.role==='admin'?(p.position||'ผู้ดูแลระบบ'):'รหัสพนักงาน '+(p.empCode||'')}</small></div></div>
     ${items.map(i=>`<div class="menu-item" onclick="closeMenu();${i.fn?i.fn+'()':"go('"+i.go+"')"}"><span class="mi-ic">${i.ic}</span><div>${i.t}<div class="hint" style="font-weight:400">${i.s}</div></div></div>`).join('')}
