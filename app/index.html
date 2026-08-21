@@ -1,0 +1,652 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0fb5a6">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600;700&family=Kanit:wght@500;600;700&display=swap" rel="stylesheet">
+<title>Easy Fix — แจ้งซ่อมบ้านพัก</title>
+<style>
+  /* ============ Design tokens (light) ============ */
+  :root{
+    --brand:#0fb5a6; --brand-2:#2ad0be; --brand-deep:#0b8378; --brand-ink:#0a4b46;
+    --brand-soft:#e2f9f5; --brand-soft2:#cef3ec;
+    --ink:#0c1b21; --muted:#5c7079; --line:rgba(12,40,45,.10);
+    --bg:#eef4f5; --card:#ffffff; --card-2:#f5fafa;
+    --ok:#12a150; --ok-soft:#dcfbe7; --warn:#e08a00; --warn-soft:#fdf0cf;
+    --danger:#e5484d; --danger-soft:#fde5e6; --wait:#8598a2; --wait-soft:#eef2f4;
+    --radius:22px; --radius-sm:15px;
+    --sh-sm:0 1px 2px rgba(12,40,45,.06);
+    --sh:0 6px 18px -6px rgba(12,40,45,.16), 0 2px 6px -3px rgba(12,40,45,.08);
+    --sh-lg:0 20px 44px -14px rgba(12,40,45,.28);
+    --glow:0 12px 26px -8px rgba(15,181,166,.55);
+    --glass:rgba(255,255,255,.72); --glass-brd:rgba(255,255,255,.75);
+    --safe-b:env(safe-area-inset-bottom,0px);
+    --font:"IBM Plex Sans Thai","Segoe UI",system-ui,-apple-system,sans-serif;
+    --display:"Kanit","IBM Plex Sans Thai",system-ui,sans-serif;
+    color-scheme:light;
+  }
+  /* ============ Dark theme ============ */
+  @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+    --ink:#e9f2f2; --muted:#93a8ad; --line:rgba(255,255,255,.10);
+    --bg:#081215; --card:#111f23; --card-2:#182a2f;
+    --brand-soft:rgba(15,181,166,.16); --brand-soft2:rgba(15,181,166,.24); --brand-ink:#63e7d7;
+    --ok-soft:rgba(18,161,80,.18); --warn-soft:rgba(224,138,0,.20); --danger-soft:rgba(229,72,77,.20); --wait-soft:rgba(133,152,162,.18);
+    --sh:0 8px 22px -8px rgba(0,0,0,.6),0 2px 6px -3px rgba(0,0,0,.5); --sh-sm:0 1px 2px rgba(0,0,0,.5);
+    --sh-lg:0 24px 48px -14px rgba(0,0,0,.7); --glass:rgba(20,34,38,.72); --glass-brd:rgba(255,255,255,.10);
+    color-scheme:dark;
+  }}
+  :root[data-theme="dark"]{
+    --ink:#e9f2f2; --muted:#93a8ad; --line:rgba(255,255,255,.10);
+    --bg:#081215; --card:#111f23; --card-2:#182a2f;
+    --brand-soft:rgba(15,181,166,.16); --brand-soft2:rgba(15,181,166,.24); --brand-ink:#63e7d7;
+    --ok-soft:rgba(18,161,80,.18); --warn-soft:rgba(224,138,0,.20); --danger-soft:rgba(229,72,77,.20); --wait-soft:rgba(133,152,162,.18);
+    --sh:0 8px 22px -8px rgba(0,0,0,.6),0 2px 6px -3px rgba(0,0,0,.5); --sh-sm:0 1px 2px rgba(0,0,0,.5);
+    --sh-lg:0 24px 48px -14px rgba(0,0,0,.7); --glass:rgba(20,34,38,.72); --glass-brd:rgba(255,255,255,.10);
+    color-scheme:dark;
+  }
+
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+  body{color:var(--ink);font-family:var(--font);overscroll-behavior-y:none;
+    background:
+      radial-gradient(1100px 480px at 50% -8%, rgba(42,208,190,.28), transparent 62%),
+      radial-gradient(760px 420px at 108% 2%, rgba(15,181,166,.14), transparent 60%),
+      linear-gradient(180deg,var(--bg),var(--bg));
+    background-attachment:fixed;min-height:100vh}
+  .app{max-width:480px;margin:0 auto;min-height:100vh;position:relative}
+  .screen{display:none;padding:16px 16px 108px;animation:fade .3s cubic-bezier(.2,.7,.3,1)}
+  .screen.active{display:block}
+  @keyframes fade{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+  @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+
+  /* ---------- header ---------- */
+  .topbar{position:sticky;top:0;z-index:10;overflow:hidden;color:#fff;
+    background:linear-gradient(135deg,var(--brand-2),var(--brand) 45%,var(--brand-deep));
+    padding:calc(env(safe-area-inset-top,0px) + 22px) 20px 26px;border-radius:0 0 28px 28px;
+    box-shadow:var(--glow),0 1px 0 rgba(255,255,255,.3) inset;margin-bottom:16px}
+  .topbar::after{content:"";position:absolute;inset:0;background:
+    radial-gradient(120px 120px at 88% -20%, rgba(255,255,255,.45), transparent 70%),
+    radial-gradient(160px 120px at 10% 120%, rgba(255,255,255,.18), transparent 70%);pointer-events:none}
+  .topbar h1{font-family:var(--display);font-size:22px;font-weight:600;letter-spacing:.2px;position:relative}
+  .topbar .sub{opacity:.92;font-size:13px;margin-top:3px;position:relative}
+
+  /* ---------- cards & bits ---------- */
+  .card{background:var(--card);border-radius:var(--radius);padding:18px;box-shadow:var(--sh);
+    border:1px solid var(--line);margin-bottom:14px}
+  .card h2{font-family:var(--display);font-size:16px;font-weight:600;margin-bottom:13px;color:var(--ink)}
+  .row{display:flex;align-items:center;gap:12px}.grow{flex:1}
+  label.fl{display:block;font-size:13px;color:var(--muted);margin:14px 0 6px;font-weight:600}
+  input,textarea,select{width:100%;border:1.5px solid var(--line);border-radius:var(--radius-sm);padding:13px 15px;
+    font-size:16px;font-family:inherit;background:var(--card-2);color:var(--ink);outline:none;transition:.18s}
+  input:focus,textarea:focus,select:focus{border-color:var(--brand);background:var(--card);
+    box-shadow:0 0 0 4px var(--brand-soft)}
+  textarea{min-height:96px;resize:vertical}
+  .btn{width:100%;border:none;border-radius:16px;padding:16px;font-size:16px;font-weight:700;font-family:inherit;
+    color:#fff;cursor:pointer;transition:.18s;letter-spacing:.2px;
+    background:linear-gradient(135deg,var(--brand-2),var(--brand) 55%,var(--brand-deep));box-shadow:var(--glow)}
+  .btn:active{transform:translateY(1px) scale(.985);box-shadow:0 6px 16px -8px rgba(15,181,166,.5)}
+  .btn:disabled{opacity:.55;box-shadow:none}
+  .btn.ghost{background:var(--brand-soft);color:var(--brand-deep);box-shadow:none}
+  .btn.sm{padding:11px 16px;font-size:14px;width:auto;border-radius:12px}
+  .pill{display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:700;padding:6px 12px;border-radius:999px}
+  .st-wait{background:var(--wait-soft);color:var(--wait)} .st-prog{background:var(--warn-soft);color:var(--warn)} .st-done{background:var(--ok-soft);color:var(--ok)}
+  .hint{font-size:12px;color:var(--muted);margin-top:7px;line-height:1.5}
+  .err{background:var(--danger-soft);color:var(--danger);border-radius:12px;padding:11px 14px;font-size:14px;margin-top:12px;display:none;font-weight:500}
+
+  /* ---------- login ---------- */
+  .login-wrap{min-height:100vh;display:flex;flex-direction:column;justify-content:center;padding:28px}
+  .logo{width:82px;height:82px;border-radius:26px;font-size:42px;display:grid;place-items:center;margin:0 auto 18px;
+    background:linear-gradient(135deg,var(--brand-2),var(--brand) 55%,var(--brand-deep));
+    box-shadow:var(--glow),0 1px 0 rgba(255,255,255,.4) inset;animation:pop .5s cubic-bezier(.2,.8,.2,1.2)}
+  @keyframes pop{from{opacity:0;transform:scale(.7) translateY(8px)}to{opacity:1;transform:none}}
+  .login-wrap h1{font-family:var(--display);text-align:center;font-size:30px;font-weight:700;letter-spacing:.5px}
+  .login-wrap p{text-align:center;color:var(--muted);margin:4px 0 24px}
+  .login-wrap .card{background:var(--glass);backdrop-filter:blur(18px) saturate(1.4);-webkit-backdrop-filter:blur(18px) saturate(1.4);
+    border:1px solid var(--glass-brd);box-shadow:var(--sh-lg)}
+
+  /* ---------- profile / home ---------- */
+  .prof{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:4px}
+  .prof .item{background:linear-gradient(160deg,var(--brand-soft),var(--brand-soft2));border-radius:14px;padding:13px 14px;border:1px solid var(--line)}
+  .prof .item small{color:var(--brand-deep);font-size:11px;font-weight:700;letter-spacing:.3px} .prof .item b{display:block;font-size:15px;margin-top:3px;color:var(--ink)}
+  .prof .full{grid-column:1/3}
+
+  /* ---------- categories ---------- */
+  .cats{display:grid;grid-template-columns:repeat(3,1fr);gap:11px}
+  .cat{border:1.5px solid var(--line);border-radius:18px;padding:14px 6px 12px;text-align:center;cursor:pointer;transition:.18s;background:var(--card);box-shadow:var(--sh-sm)}
+  .cat .ic{width:46px;height:46px;margin:0 auto;border-radius:14px;display:grid;place-items:center;font-size:24px;
+    background:linear-gradient(160deg,var(--brand-soft),var(--brand-soft2));transition:.18s}
+  .cat span{display:block;font-size:12px;margin-top:8px;color:var(--muted);font-weight:600}
+  .cat:active{transform:scale(.96)}
+  .cat.on{border-color:var(--brand);box-shadow:var(--glow)}
+  .cat.on .ic{background:linear-gradient(135deg,var(--brand-2),var(--brand-deep));transform:scale(1.06)}
+  .cat.on span{color:var(--brand-deep);font-weight:700}
+
+  /* ---------- urgency ---------- */
+  .urg{display:flex;gap:10px}
+  .urg .u{flex:1;border:1.5px solid var(--line);border-radius:16px;padding:14px 4px;text-align:center;cursor:pointer;background:var(--card);transition:.18s;box-shadow:var(--sh-sm)}
+  .urg .u .ic{font-size:24px} .urg .u b{display:block;font-size:13px;margin-top:5px;color:var(--ink)} .urg .u small{font-size:10px;color:var(--muted);display:block;margin-top:1px}
+  .urg .u:active{transform:scale(.96)}
+  .urg .u.on{border-width:2px}
+  .urg .u.on[data-u="ปกติ"]{border-color:var(--ok);background:var(--ok-soft)}
+  .urg .u.on[data-u="เร่งด่วน"]{border-color:var(--warn);background:var(--warn-soft)}
+  .urg .u.on[data-u="ฉุกเฉิน"]{border-color:var(--danger);background:var(--danger-soft)}
+  .ub{font-size:11px;font-weight:700;padding:4px 10px;border-radius:999px;white-space:nowrap}
+  .ub-n{background:var(--ok-soft);color:var(--ok)} .ub-u{background:var(--warn-soft);color:var(--warn)} .ub-e{background:var(--danger-soft);color:var(--danger)}
+  #urgency-card,#symptom-card{display:none}
+
+  /* ---------- symptom chips ---------- */
+  .chips{display:flex;flex-wrap:wrap;gap:8px}
+  .chip2{border:1.5px solid var(--line);background:var(--card-2);border-radius:999px;padding:10px 15px;font-size:14px;
+    cursor:pointer;color:var(--ink);transition:.15s;font-weight:500;line-height:1.2}
+  .chip2:active{transform:scale(.95)}
+  .chip2.on{border-color:transparent;background:linear-gradient(135deg,var(--brand-2),var(--brand-deep));color:#fff;font-weight:700;box-shadow:var(--glow)}
+  .chip2.on::before{content:"✓ "}
+
+  /* ---------- photos ---------- */
+  .photos{display:flex;gap:10px;flex-wrap:wrap;margin-top:8px}
+  .ph{width:76px;height:76px;border-radius:14px;object-fit:cover;box-shadow:var(--sh-sm)}
+  .ph-wrap{position:relative} .ph-x{position:absolute;top:-7px;right:-7px;background:var(--danger);color:#fff;border:2px solid var(--card);
+    width:24px;height:24px;border-radius:50%;font-size:13px;cursor:pointer;box-shadow:var(--sh-sm)}
+  .ph-add{width:76px;height:76px;border:2px dashed var(--line);border-radius:14px;display:grid;place-items:center;
+    color:var(--brand);cursor:pointer;font-size:26px;background:var(--brand-soft)}
+
+  /* ---------- ticket list ---------- */
+  .tk{background:var(--card);border-radius:var(--radius);padding:16px;box-shadow:var(--sh);border:1px solid var(--line);margin-bottom:12px;cursor:pointer;transition:.18s}
+  .tk:active{transform:scale(.99)}
+  .tk .top{display:flex;justify-content:space-between;align-items:center;margin-bottom:7px;gap:8px}
+  .tk .id{font-size:12px;color:var(--muted);font-weight:700;font-variant-numeric:tabular-nums}
+  .tk .cat{font-size:15px;font-weight:700;display:flex;align-items:center;gap:8px;flex-wrap:wrap} .tk .dt{font-size:13px;color:var(--muted);margin-top:3px;line-height:1.5}
+  .tk .meta{font-size:12px;color:var(--muted);margin-top:10px;display:flex;gap:12px;flex-wrap:wrap;padding-top:10px;border-top:1px solid var(--line)}
+
+  /* ---------- rating stars ---------- */
+  .stars{display:flex;justify-content:center;gap:10px;font-size:44px;margin:16px 0}
+  .stars span{cursor:pointer;filter:grayscale(1);opacity:.35;transition:.15s} .stars span.on{filter:none;opacity:1;transform:scale(1.12)}
+
+  /* ---------- floating bottom nav ---------- */
+  .nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:calc(100% - 24px);max-width:456px;
+    margin-bottom:calc(12px + var(--safe-b));display:flex;padding:7px;gap:2px;z-index:20;border-radius:22px;
+    background:var(--glass);backdrop-filter:blur(20px) saturate(1.5);-webkit-backdrop-filter:blur(20px) saturate(1.5);
+    border:1px solid var(--glass-brd);box-shadow:var(--sh-lg)}
+  .nav button{flex:1;border:none;background:none;display:flex;flex-direction:column;align-items:center;gap:3px;
+    color:var(--muted);font-size:11px;cursor:pointer;font-family:inherit;font-weight:600;padding:8px 0;border-radius:15px;transition:.18s}
+  .nav button .ic{font-size:21px;transition:.18s} .nav button:active{transform:scale(.92)}
+  .nav button.on{color:var(--brand-deep);background:var(--brand-soft)} .nav button.on .ic{transform:translateY(-1px) scale(1.08)}
+
+  /* ---------- toast / modal ---------- */
+  .toast{position:fixed;bottom:104px;left:50%;transform:translateX(-50%) translateY(8px);color:#fff;
+    background:linear-gradient(135deg,var(--brand),var(--brand-deep));
+    padding:13px 22px;border-radius:999px;font-size:14px;font-weight:600;z-index:50;opacity:0;transition:.3s;pointer-events:none;white-space:nowrap;box-shadow:var(--sh-lg)}
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+  .modal{position:fixed;inset:0;background:rgba(6,20,23,.55);backdrop-filter:blur(3px);z-index:40;display:none;align-items:flex-end;justify-content:center}
+  .modal.show{display:flex;animation:fadein .25s}
+  @keyframes fadein{from{opacity:0}to{opacity:1}}
+  .sheet{background:var(--card);width:100%;max-width:480px;border-radius:26px 26px 0 0;padding:14px 18px calc(24px + var(--safe-b));
+    animation:up .32s cubic-bezier(.2,.8,.2,1);box-shadow:var(--sh-lg);max-height:88vh;overflow-y:auto}
+  .sheet::before{content:"";display:block;width:42px;height:5px;border-radius:999px;background:var(--line);margin:2px auto 16px}
+  @keyframes up{from{transform:translateY(100%)}to{transform:none}}
+  .demo-badge{position:fixed;top:8px;right:8px;z-index:60;background:linear-gradient(135deg,#fde68a,#fbbf24);color:#78350f;font-size:10px;font-weight:800;letter-spacing:.5px;padding:4px 10px;border-radius:999px;box-shadow:var(--sh-sm)}
+
+  /* ============ LOGIN / HOME (หน้าแรก) ============ */
+  #s-login{padding:0 0 40px}
+  .hero{position:relative;overflow:hidden;text-align:center;
+    padding:calc(env(safe-area-inset-top,0px) + 26px) 22px 30px;
+    background:linear-gradient(168deg,#d5f4ee 0%,#e9faf6 52%,var(--bg) 100%);
+    border-radius:0 0 42px 42px}
+  .hero::before{content:"";position:absolute;width:220px;height:220px;border-radius:50%;top:-70px;left:-50px;
+    background:radial-gradient(circle,rgba(42,208,190,.45),transparent 70%);filter:blur(6px)}
+  .hero::after{content:"";position:absolute;width:180px;height:180px;border-radius:50%;top:20px;right:-50px;
+    background:radial-gradient(circle,rgba(15,181,166,.30),transparent 70%);filter:blur(6px)}
+  .hero-split{display:flex;align-items:center;gap:4px;padding-left:0;padding-right:14px;padding-bottom:22px;text-align:left}
+  .hero-img{position:relative;width:54%;max-width:260px;display:block;border-radius:0 26px 26px 0;
+    box-shadow:0 16px 30px -12px rgba(11,131,120,.4);z-index:1}
+  .hero-brand{position:relative;flex:1;text-align:center;z-index:1}
+  .logo-img{width:86px;height:86px;border-radius:24px;display:block;margin:0 auto 12px;
+    box-shadow:var(--glow),0 1px 0 rgba(255,255,255,.4) inset;animation:pop .5s cubic-bezier(.2,.8,.2,1.2)}
+  .hero-brand h1{font-family:var(--display);font-size:32px;font-weight:700;letter-spacing:.5px;color:var(--brand-ink);line-height:1}
+  .hero-brand p{color:var(--brand-deep);font-size:13.5px;margin-top:7px;font-weight:500;opacity:.9;line-height:1.5}
+
+  .login-body{padding:0 16px}
+  .login-card{margin-top:-18px;position:relative;z-index:2}
+  .login-card h2{font-family:var(--display);text-align:center;font-size:22px;font-weight:700}
+  .sub-c{text-align:center;color:var(--muted);font-size:14px;margin:2px 0 8px}
+
+  /* icon inputs */
+  .inp{position:relative;display:flex;align-items:center}
+  .inp .lic{position:absolute;left:15px;font-size:17px;opacity:.7;pointer-events:none;display:grid;place-items:center;width:20px}
+  .inp input{padding-left:46px}
+  .inp .eye{position:absolute;right:8px;background:none;border:none;font-size:18px;cursor:pointer;padding:8px;opacity:.65;border-radius:10px}
+  .inp .eye:active{opacity:1}
+
+  .row-between{display:flex;align-items:center;justify-content:space-between;margin:14px 2px 4px}
+  .chk{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--muted);font-weight:600;cursor:pointer;user-select:none}
+  .chk input{width:20px;height:20px;accent-color:var(--brand);border-radius:6px;cursor:pointer}
+  .link{font-size:13px;color:var(--brand-deep);font-weight:700;cursor:pointer;background:none;border:none;font-family:inherit}
+
+  .section-t{font-family:var(--display);text-align:center;font-size:17px;font-weight:600;margin:26px 0 14px;color:var(--ink)}
+  .features{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+  .feat{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:14px 6px;text-align:center;box-shadow:var(--sh-sm);transition:.18s}
+  .feat:active{transform:scale(.96)}
+  .feat .fic{font-size:26px;line-height:1;filter:drop-shadow(0 4px 6px rgba(11,131,120,.22))}
+  .feat b{display:block;font-size:11.5px;margin-top:8px;color:var(--ink);font-weight:700}
+  .feat small{display:block;font-size:9.5px;color:var(--muted);margin-top:2px;line-height:1.3}
+
+  .help-banner{display:flex;align-items:center;gap:12px;margin-top:16px;padding:14px 16px;border-radius:20px;
+    background:linear-gradient(135deg,var(--brand-soft),var(--brand-soft2));border:1px solid var(--line);box-shadow:var(--sh-sm);cursor:pointer;transition:.18s}
+  .help-banner:active{transform:scale(.99)}
+  .help-banner .av{width:44px;height:44px;border-radius:50%;background:var(--card);display:grid;place-items:center;font-size:24px;box-shadow:var(--sh-sm);flex-shrink:0}
+  .help-banner b{display:block;font-size:13.5px;color:var(--ink);font-weight:700;line-height:1.35}
+  .help-banner small{display:block;font-size:12px;color:var(--brand-deep);margin-top:2px}
+  .help-banner .chev{width:34px;height:34px;border-radius:50%;background:var(--card);display:grid;place-items:center;color:var(--brand);font-size:20px;font-weight:700;box-shadow:var(--sh-sm);flex-shrink:0}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- ============ LOGIN / HOME ============ -->
+  <section id="s-login" class="screen active">
+    <div class="hero hero-split">
+      <img class="hero-img" src="hero.jpg" alt="ช่างซ่อม Easy Fix">
+      <div class="hero-brand">
+        <img class="logo-img" src="icon-192.png" alt="Easy Fix">
+        <h1>Easy Fix</h1>
+        <p>ระบบแจ้งซ่อม<br>บ้านพักพนักงาน</p>
+      </div>
+    </div>
+
+    <div class="login-body">
+      <div class="card login-card">
+        <h2>ยินดีต้อนรับ 👋</h2>
+        <p class="sub-c">เข้าสู่ระบบเพื่อใช้งาน Easy Fix</p>
+
+        <label class="fl">รหัสพนักงาน</label>
+        <div class="inp">
+          <span class="lic">👤</span>
+          <input id="in-emp" inputmode="numeric" placeholder="เช่น 19474" autocomplete="off">
+        </div>
+
+        <label class="fl">PIN ส่วนตัว</label>
+        <div class="inp">
+          <span class="lic">🔒</span>
+          <input id="in-pin" type="password" inputmode="numeric" placeholder="รหัส PIN (ค่าเริ่มต้น 1234)">
+          <button type="button" class="eye" id="eye-pin" aria-label="แสดง/ซ่อน PIN">👁️</button>
+        </div>
+        <div class="hint">🔑 เข้าครั้งแรกใช้ PIN <b>1234</b></div>
+
+        <div id="pin2-wrap" style="display:none">
+          <label class="fl">ยืนยัน PIN อีกครั้ง</label>
+          <div class="inp">
+            <span class="lic">🔒</span>
+            <input id="in-pin2" type="password" inputmode="numeric" placeholder="กรอก PIN ซ้ำ">
+          </div>
+          <div class="hint">🔐 เข้าครั้งแรก — กรุณาตั้ง PIN ส่วนตัวของคุณ</div>
+        </div>
+
+        <div class="row-between">
+          <label class="chk"><input type="checkbox" id="chk-remember" checked> จดจำฉัน</label>
+          <button class="link" onclick="forgotPin()">ลืม PIN?</button>
+        </div>
+
+        <div style="height:12px"></div>
+        <button class="btn" id="btn-login">⎆ เข้าสู่ระบบ</button>
+        <div class="err" id="login-err"></div>
+      </div>
+
+      <div class="section-t">ทำเรื่องซ่อมง่าย แค่ปลายนิ้ว ✨</div>
+      <div class="features">
+        <div class="feat"><div class="fic">🛠️</div><b>แจ้งซ่อมง่าย</b><small>ส่งเรื่องได้ทุกเวลา</small></div>
+        <div class="feat"><div class="fic">🔔</div><b>ติดตามสถานะ</b><small>รู้ความคืบหน้างาน</small></div>
+        <div class="feat"><div class="fic">📷</div><b>แนบรูปถ่าย</b><small>เพิ่มรายละเอียดปัญหา</small></div>
+        <div class="feat"><div class="fic">⭐</div><b>ให้คะแนน</b><small>ประเมินหลังซ่อมเสร็จ</small></div>
+      </div>
+
+      <div class="help-banner" onclick="forgotPin()">
+        <div class="av">👩‍💼</div>
+        <div class="grow">
+          <b>ลืม PIN หรือมีปัญหาในการเข้าใช้งาน?</b>
+          <small>ติดต่อฝ่าย HR เพื่อรีเซ็ต PIN</small>
+        </div>
+        <div class="chev">›</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ HOME ============ -->
+  <section id="s-home" class="screen">
+    <div class="topbar">
+      <h1 id="hi-name">สวัสดี</h1>
+      <div class="sub" id="hi-code"></div>
+    </div>
+    <div class="card">
+      <h2>🏠 ข้อมูลบ้านพักของคุณ</h2>
+      <div class="prof">
+        <div class="item full"><small>ชื่อ - สกุล</small><b id="p-name">-</b></div>
+        <div class="item full"><small>สังกัด</small><b id="p-dept">-</b></div>
+        <div class="item"><small>จุดบ้านพัก</small><b id="p-zone">-</b></div>
+        <div class="item"><small>เลขที่ห้อง</small><b id="p-room">-</b></div>
+      </div>
+    </div>
+    <button class="btn" onclick="go('report')">➕ แจ้งซ่อมใหม่</button>
+    <div style="height:14px"></div>
+    <div class="card">
+      <h2>📋 งานซ่อมล่าสุด</h2>
+      <div id="home-tickets"><p class="hint">ยังไม่มีรายการ</p></div>
+      <div style="height:8px"></div>
+      <button class="btn ghost sm" onclick="go('tickets')">ดูทั้งหมด</button>
+    </div>
+  </section>
+
+  <!-- ============ REPORT ============ -->
+  <section id="s-report" class="screen">
+    <div class="topbar"><h1>➕ แจ้งซ่อม</h1><div class="sub">กรอกรายละเอียดให้ครบถ้วน</div></div>
+    <div class="card">
+      <h2>เลือกหมวดงานซ่อม</h2>
+      <div class="cats" id="cats"></div>
+    </div>
+    <div class="card" id="symptom-card">
+      <h2>👆 อาการที่พบ <span style="font-weight:400;color:var(--muted);font-size:12px">(เลือกได้หลายข้อ)</span></h2>
+      <div class="chips" id="symptoms"></div>
+    </div>
+    <div class="card" id="urgency-card">
+      <h2>⚡ ระดับความเร่งด่วน</h2>
+      <div class="urg" id="urg"></div>
+      <div class="hint" id="urg-hint"></div>
+    </div>
+    <div class="card">
+      <label class="fl">รายละเอียดเพิ่มเติม (ถ้ามี)</label>
+      <textarea id="in-detail" placeholder="ระบุจุด/อาการเพิ่มเติม เช่น อยู่ห้องน้ำ, เป็นมา 2 วัน"></textarea>
+      <label class="fl">เบอร์โทรติดต่อ *</label>
+      <input id="in-phone" inputmode="tel" placeholder="08x-xxx-xxxx">
+      <label class="fl">รูปภาพประกอบ (สูงสุด 5 รูป)</label>
+      <div class="photos" id="photos">
+        <div class="ph-add" onclick="document.getElementById('file').click()">📷</div>
+      </div>
+      <input type="file" id="file" accept="image/*" capture="environment" multiple style="display:none">
+      <div style="height:18px"></div>
+      <button class="btn" id="btn-submit">📨 ส่งแจ้งซ่อม</button>
+      <div class="err" id="report-err"></div>
+    </div>
+  </section>
+
+  <!-- ============ TICKETS ============ -->
+  <section id="s-tickets" class="screen">
+    <div class="topbar"><h1>📋 งานซ่อมของฉัน</h1><div class="sub">ติดตามสถานะการซ่อม</div></div>
+    <div id="all-tickets"></div>
+  </section>
+
+  <!-- bottom nav -->
+  <nav class="nav" id="nav" style="display:none">
+    <button data-go="home" class="on"><span class="ic">🏠</span>หน้าหลัก</button>
+    <button data-go="report"><span class="ic">➕</span>แจ้งซ่อม</button>
+    <button data-go="tickets"><span class="ic">📋</span>งานซ่อม</button>
+    <button onclick="logout()"><span class="ic">🚪</span>ออก</button>
+  </nav>
+</div>
+
+<!-- ticket detail / rating modal -->
+<div class="modal" id="modal"><div class="sheet" id="sheet"></div></div>
+<div class="toast" id="toast"></div>
+<div class="demo-badge" id="demoBadge" style="display:none">DEMO</div>
+
+<script>
+/* ================= CONFIG ================= */
+// ใส่ URL ของ Google Apps Script Web App (.../exec) ที่นี่ เพื่อใช้งานจริง
+const API_URL = "https://script.google.com/macros/s/AKfycbx3lJtRGasyqF_TbY3y841GYj0xkOIHh_Gb9-WcThXnKhY0BEJa2O_x3_LZiTUwkhmcXg/exec";  // ว่าง = โหมด DEMO
+const DEMO = !API_URL;
+
+const CATEGORIES = [
+  {k:'ไฟฟ้า',ic:'💡'},{k:'ประปา',ic:'🚰'},{k:'เครื่องปรับอากาศ',ic:'❄️'},
+  {k:'ประตู/หน้าต่าง',ic:'🚪'},{k:'หลังคา',ic:'🏚️'},{k:'ห้องน้ำ',ic:'🚽'},
+  {k:'เฟอร์นิเจอร์',ic:'🛋️'},{k:'อินเทอร์เน็ต/WiFi',ic:'📶'},{k:'อื่นๆ',ic:'🔧'}
+];
+
+const URGENCY = [
+  {k:'ปกติ',   ic:'🟢', d:'ไม่เร่งด่วน ซ่อมตามรอบปกติ'},
+  {k:'เร่งด่วน', ic:'🟡', d:'กระทบการใช้ชีวิตประจำวัน'},
+  {k:'ฉุกเฉิน', ic:'🔴', d:'อันตราย/เสียหาย ต้องแก้ทันที'}
+];
+
+/* อาการย่อยแยกตามหมวด — พนักงานกดเลือกได้เลย ไม่ต้องพิมพ์ */
+const PROBLEMS = {
+  'ไฟฟ้า':['หลอดไฟไม่ติด','หลอดไฟกะพริบ','ปลั๊กไฟใช้ไม่ได้','สวิตช์ไฟเสีย','เบรกเกอร์ตัดบ่อย','ไฟตก/ไฟกระพริบทั้งห้อง','ไฟรั่ว/ไฟช็อต','สายไฟชำรุด','ไม่มีไฟทั้งห้อง'],
+  'ประปา':['ก๊อกน้ำรั่ว/หยด','น้ำไม่ไหล','น้ำไหลอ่อน','ท่อน้ำรั่ว/แตก','ท่อระบายตัน','น้ำรั่วซึมพื้น/ผนัง','ปั๊มน้ำไม่ทำงาน','น้ำขุ่น/มีกลิ่น'],
+  'เครื่องปรับอากาศ':['แอร์ไม่เย็น','แอร์มีน้ำหยด','แอร์เปิดไม่ติด','แอร์มีเสียงดัง','แอร์มีกลิ่นเหม็น','รีโมทเสีย','ถึงรอบล้างแอร์'],
+  'ประตู/หน้าต่าง':['ประตูปิดไม่สนิท','ลูกบิด/กลอนเสีย','กุญแจเสีย/ค้าง','บานพับหลวม/หลุด','กระจกแตก/ร้าว','มุ้งลวดขาด','หน้าต่างเปิด-ปิดไม่ได้'],
+  'หลังคา':['หลังคารั่ว/น้ำหยด','ฝ้าเพดานบวมน้ำ','ฝ้าเพดานหลุด/ทะลุ','กระเบื้องหลังคาแตก','รางน้ำอุดตัน/รั่ว'],
+  'ห้องน้ำ':['ชักโครกตัน/กดไม่ลง','ชักโครกน้ำไหลตลอด','ฝักบัว/สายชำระเสีย','อ่างล้างหน้าตัน','พื้นแตก/ลื่น','น้ำรั่วซึม','กลิ่นเหม็นจากท่อ','พัดลมดูดอากาศเสีย'],
+  'เฟอร์นิเจอร์':['เตียง/ที่นอนชำรุด','ตู้/ลิ้นชักเสีย','โต๊ะ/เก้าอี้ชำรุด','ชั้นวางหลุด/หัก','บานประตูตู้เสีย'],
+  'อินเทอร์เน็ต/WiFi':['เน็ตใช้ไม่ได้','เชื่อมต่อ WiFi ไม่ได้','เน็ตช้า','สัญญาณอ่อน/หลุดบ่อย','เราเตอร์ไฟไม่ติด'],
+  'อื่นๆ':['ปลวก/แมลง/สัตว์รบกวน','ผนัง/สีลอก','พื้นชำรุด','กลิ่นอับ/ความชื้น','อื่นๆ (ระบุด้านล่าง)']
+};
+
+/* ================= STATE ================= */
+let state = { token:null, profile:null, category:null, symptoms:[], urgency:'ปกติ', photos:[], tickets:[] };
+
+/* safe storage (localStorage อาจถูกปิดในบางบริบท เช่น data: URL) */
+const store = {
+  get(k){ try{ return localStorage.getItem(k); }catch(e){ return null; } },
+  set(k,v){ try{ localStorage.setItem(k,v); }catch(e){} },
+  del(k){ try{ localStorage.removeItem(k); }catch(e){} }
+};
+
+/* ================= DEMO DATA ================= */
+const DEMO_EMP = { '19474':{name:'นาย อภิโชติ ศรัทธาพิทักษ์',dept:'ผู้จัดการไร่ชุมชน 2',zone:'บ้านพักโนนสัน',room:'NSA2'},
+                   '19452':{name:'นาย เริ่มพงษ์ คลังภูเขียว',dept:'ด้านอ้อย',zone:'บ้านพักโนนสัน',room:'NSA3'} };
+let DEMO_TK = [
+  {ticketId:'TK-20260819-001',createdAt:'2026-08-19 09:12',category:'ไฟฟ้า',urgency:'ปกติ',detail:'หลอดไฟหน้าห้องเสีย เปิดไม่ติด',
+   status:'ดำเนินการแล้วเสร็จ',appointDate:'2026-08-20',appointTime:'10:00',hrNote:'เปลี่ยนหลอด LED ใหม่',round:'รอบ 1',ratingScore:''},
+  {ticketId:'TK-20260821-003',createdAt:'2026-08-21 08:40',category:'ประปา',urgency:'เร่งด่วน',detail:'ก๊อกน้ำห้องครัวรั่วซึม',
+   status:'กำลังดำเนินการ',appointDate:'2026-08-22',appointTime:'13:30',hrNote:'สั่งอะไหล่แล้ว',round:'รอบ 2',ratingScore:''}
+];
+
+/* ================= API ================= */
+async function api(action, payload){
+  if(DEMO) return demoApi(action, payload);
+  const r = await fetch(API_URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},
+    body:JSON.stringify(Object.assign({action},payload))});
+  return r.json();
+}
+function demoApi(action,p){
+  return new Promise(res=>setTimeout(()=>{
+    if(action==='login'){ const e=DEMO_EMP[p.empCode]; if(!e) return res({ok:false,error:'ไม่พบรหัสพนักงานนี้ (ลอง 19474 / 19452)'});
+      if(p.pin!=='1234') return res({ok:false,error:'PIN ไม่ถูกต้อง (ค่าเริ่มต้นคือ 1234)'});
+      return res({ok:true,data:{token:'demo',profile:Object.assign({empCode:p.empCode},e)}}); }
+    if(action==='setPin'){ const e=DEMO_EMP[p.empCode]; return res({ok:true,data:{token:'demo',profile:Object.assign({empCode:p.empCode},e)}}); }
+    if(action==='myTickets') return res({ok:true,data:{tickets:DEMO_TK.slice().reverse()}});
+    if(action==='submitRepair'){ const id='TK-20260821-'+('00'+(DEMO_TK.length+2)).slice(-3);
+      DEMO_TK.push({ticketId:id,createdAt:'2026-08-21 now',category:p.category,urgency:p.urgency,detail:p.detail,status:'รอดำเนินการ',
+        appointDate:'',appointTime:'',hrNote:'',round:'รอบ 2',ratingScore:''}); return res({ok:true,data:{ticketId:id}}); }
+    if(action==='rateTicket'){ const t=DEMO_TK.find(x=>x.ticketId===p.ticketId); if(t){t.ratingScore=p.score;t.ratingComment=p.comment;} return res({ok:true,data:{ok:true}}); }
+    res({ok:false,error:'demo'});
+  }, 400));
+}
+
+/* ================= NAV ================= */
+function go(name){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById('s-'+name).classList.add('active');
+  document.querySelectorAll('.nav button[data-go]').forEach(b=>b.classList.toggle('on',b.dataset.go===name));
+  document.getElementById('nav').style.display = (name==='login')?'none':'flex';
+  window.scrollTo(0,0);
+  if(name==='tickets'||name==='home') loadTickets();
+}
+document.querySelectorAll('.nav button[data-go]').forEach(b=>b.onclick=()=>go(b.dataset.go));
+
+/* ================= LOGIN ================= */
+const $=id=>document.getElementById(id);
+$('btn-login').onclick=async()=>{
+  const emp=$('in-emp').value.trim(), pin=$('in-pin').value.trim();
+  const err=$('login-err'); err.style.display='none';
+  if(!emp||!pin) return showErr(err,'กรุณากรอกรหัสพนักงานและ PIN');
+  const settingPin = $('pin2-wrap').style.display!=='none';
+  if(settingPin){
+    if(pin!==$('in-pin2').value.trim()) return showErr(err,'PIN ทั้งสองช่องไม่ตรงกัน');
+    const r=await api('setPin',{empCode:emp,pin}); return finishLogin(r,err);
+  }
+  const r=await api('login',{empCode:emp,pin});
+  if(r.ok && r.data.needSetPin){ $('pin2-wrap').style.display='block'; return showErr(err,'','info'); }
+  finishLogin(r,err, emp, pin);
+};
+async function finishLogin(r,err,emp,pin){
+  if(!r.ok) return showErr(err,r.error||'เข้าสู่ระบบไม่สำเร็จ');
+  if(r.data.needSetPin) return;
+  state.token=r.data.token; state.profile=r.data.profile;
+  if($('chk-remember').checked){ store.set('ef_token',state.token); store.set('ef_profile',JSON.stringify(state.profile)); }
+  renderProfile(); go('home');
+}
+function renderProfile(){
+  const p=state.profile;
+  $('hi-name').textContent='สวัสดี, '+(p.name||'').split(' ').slice(-1)[0]+' 👋';
+  $('hi-code').textContent='รหัสพนักงาน '+p.empCode;
+  $('p-name').textContent=p.name; $('p-dept').textContent=p.dept;
+  $('p-zone').textContent=p.zone; $('p-room').textContent=p.room;
+}
+function logout(){ store.del('ef_token'); store.del('ef_profile'); state.token=null; go('login'); }
+/* แสดง/ซ่อน PIN */
+$('eye-pin').onclick=()=>{ const p=$('in-pin'); const show=p.type==='password'; p.type=show?'text':'password'; $('eye-pin').textContent=show?'🙈':'👁️'; };
+function forgotPin(){ toast('📞 กรุณาติดต่อฝ่าย HR เพื่อรีเซ็ต PIN'); }
+
+/* ================= REPORT ================= */
+function renderCats(){
+  $('cats').innerHTML=CATEGORIES.map(c=>`<div class="cat" data-k="${c.k}"><div class="ic">${c.ic}</div><span>${c.k}</span></div>`).join('');
+  document.querySelectorAll('.cat').forEach(el=>el.onclick=()=>{
+    document.querySelectorAll('.cat').forEach(x=>x.classList.remove('on'));
+    el.classList.add('on'); state.category=el.dataset.k; state.symptoms=[];
+    renderSymptoms(el.dataset.k);                    // เลือกหมวดแล้วโชว์อาการให้กด
+    $('symptom-card').style.display='block';
+    $('urgency-card').style.display='block';
+    $('symptom-card').scrollIntoView({behavior:'smooth',block:'nearest'});
+  });
+}
+function renderSymptoms(cat){
+  const list=PROBLEMS[cat]||[];
+  $('symptoms').innerHTML=list.map(s=>`<div class="chip2" data-s="${s}">${s}</div>`).join('');
+  document.querySelectorAll('#symptoms .chip2').forEach(el=>el.onclick=()=>{
+    el.classList.toggle('on');
+    const s=el.dataset.s, i=state.symptoms.indexOf(s);
+    if(i>=0) state.symptoms.splice(i,1); else state.symptoms.push(s);
+  });
+}
+function renderUrgency(){
+  $('urg').innerHTML=URGENCY.map(u=>`<div class="u" data-u="${u.k}"><div class="ic">${u.ic}</div><b>${u.k}</b></div>`).join('');
+  document.querySelectorAll('#urg .u').forEach(el=>el.onclick=()=>{
+    document.querySelectorAll('#urg .u').forEach(x=>x.classList.remove('on'));
+    el.classList.add('on'); state.urgency=el.dataset.u;
+    $('urg-hint').textContent=(URGENCY.find(u=>u.k===state.urgency)||{}).d||'';
+  });
+  const def=document.querySelector('#urg .u[data-u="'+state.urgency+'"]'); if(def) def.click();
+}
+function urgBadge(u){ const m={'ปกติ':'ub-n','เร่งด่วน':'ub-u','ฉุกเฉิน':'ub-e'},ic={'ปกติ':'🟢','เร่งด่วน':'🟡','ฉุกเฉิน':'🔴'};
+  return u?`<span class="ub ${m[u]||'ub-n'}">${ic[u]||''} ${u}</span>`:''; }
+$('file').onchange=async e=>{
+  for(const f of e.target.files){ if(state.photos.length>=5) break; const b64=await resizeImg(f); state.photos.push(b64); }
+  renderPhotos(); e.target.value='';
+};
+function resizeImg(file){ return new Promise(res=>{
+  const img=new Image(); const rd=new FileReader();
+  rd.onload=()=>{ img.onload=()=>{ const max=1000; let{width:w,height:h}=img;
+    if(w>h&&w>max){h=h*max/w;w=max;} else if(h>max){w=w*max/h;h=max;}
+    const c=document.createElement('canvas'); c.width=w;c.height=h; c.getContext('2d').drawImage(img,0,0,w,h);
+    res(c.toDataURL('image/jpeg',0.7)); }; img.src=rd.result; };
+  rd.readAsDataURL(file);
+});}
+function renderPhotos(){
+  const box=$('photos');
+  box.innerHTML=state.photos.map((p,i)=>`<div class="ph-wrap"><img class="ph" src="${p}"><button class="ph-x" onclick="rmPhoto(${i})">×</button></div>`).join('')
+    + (state.photos.length<5?`<div class="ph-add" onclick="document.getElementById('file').click()">📷</div>`:'');
+}
+function rmPhoto(i){ state.photos.splice(i,1); renderPhotos(); }
+$('btn-submit').onclick=async()=>{
+  const err=$('report-err'); err.style.display='none';
+  const extra=$('in-detail').value.trim(), phone=$('in-phone').value.trim();
+  if(!state.category) return showErr(err,'กรุณาเลือกหมวดงานซ่อม');
+  if(!state.symptoms.length && !extra) return showErr(err,'กรุณาเลือกอาการที่พบ หรือกรอกรายละเอียด');
+  if(!phone) return showErr(err,'กรุณากรอกเบอร์โทร');
+  let detail=state.symptoms.join(', '); if(extra) detail+=(detail?' — ':'')+extra;
+  $('btn-submit').disabled=true; $('btn-submit').textContent='กำลังส่ง...';
+  const r=await api('submitRepair',{token:state.token,category:state.category,urgency:state.urgency,
+    symptoms:state.symptoms,detail,phone,photos:state.photos});
+  $('btn-submit').disabled=false; $('btn-submit').textContent='📨 ส่งแจ้งซ่อม';
+  if(!r.ok) return showErr(err,r.error||'ส่งไม่สำเร็จ');
+  toast('✅ ส่งแจ้งซ่อมแล้ว — '+r.data.ticketId);
+  state.category=null; state.symptoms=[]; state.urgency='ปกติ'; state.photos=[]; $('in-detail').value='';
+  $('symptom-card').style.display='none'; $('urgency-card').style.display='none';
+  renderCats(); renderUrgency(); renderPhotos();
+  go('tickets');
+};
+
+/* ================= TICKETS ================= */
+async function loadTickets(){
+  const r=await api('myTickets',{token:state.token});
+  if(!r.ok) return;
+  state.tickets=r.data.tickets;
+  $('all-tickets').innerHTML = state.tickets.length? state.tickets.map(tkCard).join('') : '<p class="hint">ยังไม่มีรายการแจ้งซ่อม</p>';
+  $('home-tickets').innerHTML = state.tickets.length? state.tickets.slice(0,2).map(tkCard).join('') : '<p class="hint">ยังไม่มีรายการ</p>';
+}
+function stPill(s){ const m={'รอดำเนินการ':'st-wait','กำลังดำเนินการ':'st-prog','ดำเนินการแล้วเสร็จ':'st-done'};
+  const ic={'รอดำเนินการ':'⏳','กำลังดำเนินการ':'🔧','ดำเนินการแล้วเสร็จ':'✅'};
+  return `<span class="pill ${m[s]||'st-wait'}">${ic[s]||''} ${s}</span>`; }
+function tkCard(t){ const cat=CATEGORIES.find(c=>c.k===t.category); return `
+  <div class="tk" onclick='openTicket(${JSON.stringify(t).replace(/'/g,"&#39;")})'>
+    <div class="top"><span class="id">${t.ticketId}</span>${stPill(t.status)}</div>
+    <div class="cat">${cat?cat.ic:'🔧'} ${t.category} ${urgBadge(t.urgency)}</div>
+    <div class="dt">${t.detail}</div>
+    <div class="meta"><span>🗓️ ${t.createdAt}</span>${t.appointDate?`<span>📌 นัด ${t.appointDate} ${t.appointTime||''}</span>`:''}${t.round?`<span>🔁 ${t.round}</span>`:''}</div>
+  </div>`; }
+
+function openTicket(t){
+  const done=t.status==='ดำเนินการแล้วเสร็จ', rated=t.ratingScore!=='' && t.ratingScore!=null;
+  $('sheet').innerHTML=`
+    <div class="row" style="justify-content:space-between"><h2 style="margin:0">${t.ticketId}</h2>${stPill(t.status)}</div>
+    <div style="margin:14px 0"><b style="font-size:16px">${t.category}</b> ${urgBadge(t.urgency)}<p style="color:var(--muted);margin-top:4px">${t.detail}</p></div>
+    <div class="prof">
+      <div class="item"><small>วันที่แจ้ง</small><b>${t.createdAt}</b></div>
+      <div class="item"><small>รอบซ่อม</small><b>${t.round||'-'}</b></div>
+      ${t.appointDate?`<div class="item"><small>วันนัดซ่อม</small><b>${t.appointDate}</b></div><div class="item"><small>เวลา</small><b>${t.appointTime||'-'}</b></div>`:''}
+      ${t.hrNote?`<div class="item full"><small>หมายเหตุจาก HR</small><b>${t.hrNote}</b></div>`:''}
+    </div>
+    ${done && !rated ? `
+      <div style="margin-top:18px;text-align:center"><b>ให้คะแนนความพึงพอใจ</b>
+      <div class="stars" id="stars">${[1,2,3,4,5].map(n=>`<span data-n="${n}">⭐</span>`).join('')}</div>
+      <textarea id="rate-cm" placeholder="ความคิดเห็นเพิ่มเติม (ถ้ามี)"></textarea>
+      <div style="height:12px"></div>
+      <button class="btn" onclick="submitRate('${t.ticketId}')">ส่งคะแนน</button></div>` : ''}
+    ${rated ? `<div class="card" style="background:var(--brand-l);text-align:center;margin-top:16px">คุณให้คะแนนแล้ว: ${'⭐'.repeat(t.ratingScore)}</div>`:''}
+    <div style="height:10px"></div><button class="btn ghost" onclick="closeModal()">ปิด</button>`;
+  $('modal').classList.add('show');
+  let sel=0; document.querySelectorAll('#stars span').forEach(s=>s.onclick=()=>{ sel=+s.dataset.n;
+    document.querySelectorAll('#stars span').forEach(x=>x.classList.toggle('on',+x.dataset.n<=sel)); });
+  window._rate=()=>sel;
+}
+function closeModal(){ $('modal').classList.remove('show'); }
+$('modal').onclick=e=>{ if(e.target.id==='modal') closeModal(); };
+async function submitRate(id){
+  const score=window._rate?window._rate():0; if(!score) return toast('กรุณาเลือกจำนวนดาว');
+  const r=await api('rateTicket',{token:state.token,ticketId:id,score,comment:$('rate-cm').value.trim()});
+  if(r.ok){ toast('🙏 ขอบคุณสำหรับคะแนน'); closeModal(); loadTickets(); }
+}
+
+/* ================= HELPERS ================= */
+function showErr(el,msg,type){ if(!msg){el.style.display='none';return;} el.style.display='block';
+  el.style.background=type==='info'?'#eff6ff':'#fef2f2'; el.style.color=type==='info'?'#1d4ed8':'var(--danger)'; el.textContent=msg; }
+function toast(m){ const t=$('toast'); t.textContent=m; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),2200); }
+
+/* ================= INIT ================= */
+(function init(){
+  if(DEMO) $('demoBadge').style.display='block';
+  renderCats(); renderUrgency(); renderPhotos();
+  const tk=store.get('ef_token'), pf=store.get('ef_profile');
+  if(tk&&pf){ state.token=tk; state.profile=JSON.parse(pf); renderProfile(); go('home'); }
+  else go('login');
+  // ลิงก์ลัดเปิดหน้าให้คะแนน: ?rate=TK-...
+  const rate=new URLSearchParams(location.search).get('rate');
+  if(rate && tk){ setTimeout(async()=>{ await loadTickets(); const t=state.tickets.find(x=>x.ticketId===rate); if(t) openTicket(t); },600); }
+  if('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(()=>{});
+})();
+</script>
+</body>
+</html>

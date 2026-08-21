@@ -1,0 +1,13 @@
+# ---- ข้อมูลส่วนบุคคล / ไฟล์ต้นฉบับ — ห้ามขึ้น GitHub ----
+data/
+*.xlsx
+*.xlsm
+*.docx
+
+# ---- ระบบ ----
+Thumbs.db
+Desktop.ini
+.DS_Store
+node_modules/
+*.log
+.claude/
