@@ -511,6 +511,7 @@
 const API_URL = "https://script.google.com/macros/s/AKfycbx3lJtRGasyqF_TbY3y841GYj0xkOIHh_Gb9-WcThXnKhY0BEJa2O_x3_LZiTUwkhmcXg/exec";
 const DEMO = !API_URL;
 const APP_VERSION = "1.0.0";
+const HR_LINE_ID = "";   // 👈 ใส่ LINE ID ของ HR ที่นี่ เช่น "hr.easyfix" (กดปุ่มลืม PIN แล้วจะเปิดแชท LINE)
 
 const ST={NEW:'รอตรวจสอบ',ACC:'รับเรื่องแล้ว',WORK:'กำลังดำเนินการ',REV:'รอตรวจรับ',RECV:'ตรวจรับแล้ว',DONE:'เสร็จสมบูรณ์',REJ:'ไม่สามารถดำเนินการได้'};
 const ST_META={
@@ -723,7 +724,10 @@ function renderProfile(){
 }
 function logout(){store.del('ef_token');store.del('ef_profile');state.token=null;state.role='user';state.mode='user';
   document.body.classList.remove('admin');$('in-pin').value='';go('login');}
-function forgotPin(){toast('📞 กรุณาติดต่อฝ่าย HR เพื่อรีเซ็ต PIN');}
+function forgotPin(){
+  if(HR_LINE_ID){ window.open('https://line.me/ti/p/~'+encodeURIComponent(HR_LINE_ID),'_blank'); }
+  else toast('📞 กรุณาติดต่อฝ่าย HR เพื่อรีเซ็ต PIN');
+}
 
 /* ================= REPORT ================= */
 function renderCats(){
