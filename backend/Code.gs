@@ -66,12 +66,16 @@ function route(action, req) {
     case 'ticketDetail': return apiTicketDetail(req);
     case 'userAccept':   return apiUserAccept(req);
     case 'rateTicket':   return apiRateTicket(req);
+    case 'changePin':    return apiChangePin(req);
     // --- แอดมิน ---
     case 'adminList':    return apiAdminList(req);
     case 'adminAccept':  return apiAdminAccept(req);
     case 'adminReject':  return apiAdminReject(req);
     case 'adminUpdate':  return apiAdminUpdate(req);
     case 'adminClose':   return apiAdminClose(req);
+    case 'adminSearchEmp': return apiAdminSearchEmp(req);
+    case 'adminUpdateEmp': return apiAdminUpdateEmp(req);
+    case 'adminResetPin':  return apiAdminResetPin(req);
     default:             return { ok: false, error: 'unknown action: ' + action };
   }
 }
@@ -148,6 +152,63 @@ function apiLogin(req) {
   if (!pinHash) { if (pin !== DEFAULT_PIN) return { ok: false, error: 'PIN ไม่ถูกต้อง' }; }
   else if (sha256(pin + SALT) !== pinHash) return { ok: false, error: 'PIN ไม่ถูกต้อง' };
   return { ok: true, data: { token: makeToken(String(req.empCode), 'user'), profile: empProfile(emp.row) } };
+}
+
+/** เปลี่ยน PIN (พนักงานหรือแอดมิน) */
+function apiChangePin(req) {
+  var t = checkToken(req.token);
+  if (!t) return { ok: false, error: 'session หมดอายุ' };
+  if (!req.newPin || String(req.newPin).length < 4) return { ok: false, error: 'PIN ใหม่ต้องมีอย่างน้อย 4 หลัก' };
+  var oldPin = String(req.oldPin || '');
+  if (t.role === 'admin') {
+    var ad = findAdminRow(t.code); if (!ad) return { ok: false, error: 'ไม่พบผู้ใช้' };
+    var h = ad.row[3];
+    var ok = h ? (sha256(oldPin + SALT) === h) : (oldPin === DEFAULT_PIN);
+    if (!ok) return { ok: false, error: 'PIN เดิมไม่ถูกต้อง' };
+    ss().getSheetByName('Admins').getRange(ad.rowIndex, 4).setValue(sha256(req.newPin + SALT));
+    return { ok: true, data: { ok: true } };
+  }
+  var emp = findEmpRow(t.code); if (!emp) return { ok: false, error: 'ไม่พบผู้ใช้' };
+  var eh = emp.row[6];
+  var ok2 = eh ? (sha256(oldPin + SALT) === eh) : (oldPin === DEFAULT_PIN);
+  if (!ok2) return { ok: false, error: 'PIN เดิมไม่ถูกต้อง' };
+  empSheet().getRange(emp.rowIndex, 7).setValue(sha256(req.newPin + SALT));
+  return { ok: true, data: { ok: true } };
+}
+
+/** แอดมิน: ค้นหาพนักงาน (รหัส/ชื่อ) */
+function apiAdminSearchEmp(req) {
+  var t = requireAdmin(req); if (!t) return { ok: false, error: 'ไม่มีสิทธิ์' };
+  var q = String(req.q || '').trim().toLowerCase();
+  var data = empSheet().getDataRange().getValues(); var out = [];
+  for (var i = 1; i < data.length && out.length < 40; i++) {
+    var code = String(data[i][1]), name = String(data[i][2]);
+    if (!code) continue;
+    if (!q || code.toLowerCase().indexOf(q) >= 0 || name.toLowerCase().indexOf(q) >= 0)
+      out.push({ empCode: code, name: name, dept: data[i][3], zone: data[i][4], room: data[i][5], phone: data[i][7] || '', hasPin: !!data[i][6] });
+  }
+  return { ok: true, data: { employees: out } };
+}
+
+/** แอดมิน: แก้ไขข้อมูลพนักงาน (มีผลทันที) */
+function apiAdminUpdateEmp(req) {
+  var t = requireAdmin(req); if (!t) return { ok: false, error: 'ไม่มีสิทธิ์' };
+  var emp = findEmpRow(req.empCode); if (!emp) return { ok: false, error: 'ไม่พบพนักงาน' };
+  var sh = empSheet(), r = emp.rowIndex;
+  if (req.name  !== undefined) sh.getRange(r, 3).setValue(req.name);
+  if (req.dept  !== undefined) sh.getRange(r, 4).setValue(req.dept);
+  if (req.zone  !== undefined) sh.getRange(r, 5).setValue(req.zone);
+  if (req.room  !== undefined) sh.getRange(r, 6).setValue(req.room);
+  if (req.phone !== undefined) sh.getRange(r, 8).setValue(req.phone);
+  return { ok: true, data: { ok: true } };
+}
+
+/** แอดมิน: รีเซ็ต PIN พนักงานกลับเป็นค่าเริ่มต้น (1234) */
+function apiAdminResetPin(req) {
+  var t = requireAdmin(req); if (!t) return { ok: false, error: 'ไม่มีสิทธิ์' };
+  var emp = findEmpRow(req.empCode); if (!emp) return { ok: false, error: 'ไม่พบพนักงาน' };
+  empSheet().getRange(emp.rowIndex, 7).setValue('');
+  return { ok: true, data: { ok: true } };
 }
 
 // ====================== TICKETS: helper ======================
