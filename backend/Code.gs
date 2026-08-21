@@ -130,12 +130,11 @@ function empProfile(row) {
 }
 
 function apiLogin(req) {
-  var mode = req.mode === 'admin' ? 'admin' : 'user';
   var pin = String(req.pin || '');
 
-  if (mode === 'admin') {
-    var ad = findAdminRow(req.empCode);            // Admins: A code, B name, C position, D pinHash
-    if (!ad) return { ok: false, error: 'ไม่พบรหัสผู้ดูแลระบบนี้' };
+  // แยกบทบาทอัตโนมัติจากรหัส: ถ้ารหัสอยู่ในแท็บ Admins = ผู้ดูแล, ไม่งั้น = พนักงาน
+  var ad = findAdminRow(req.empCode);              // Admins: A code, B name, C position, D pinHash
+  if (ad) {
     var aHash = ad.row[3];
     if (!aHash) { if (pin !== DEFAULT_PIN) return { ok: false, error: 'PIN ไม่ถูกต้อง' }; }
     else if (sha256(pin + SALT) !== aHash) return { ok: false, error: 'PIN ไม่ถูกต้อง' };
@@ -144,7 +143,7 @@ function apiLogin(req) {
   }
 
   var emp = findEmpRow(req.empCode);
-  if (!emp) return { ok: false, error: 'ไม่พบรหัสพนักงานนี้' };
+  if (!emp) return { ok: false, error: 'ไม่พบรหัสนี้ในระบบ' };
   var pinHash = emp.row[6];
   if (!pinHash) { if (pin !== DEFAULT_PIN) return { ok: false, error: 'PIN ไม่ถูกต้อง' }; }
   else if (sha256(pin + SALT) !== pinHash) return { ok: false, error: 'PIN ไม่ถูกต้อง' };
