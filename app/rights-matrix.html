@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="th" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600;700&family=Kanit:wght@500;600;700&display=swap" rel="stylesheet">
+<title>ตารางสิทธิ์แจ้งซ่อม</title>
+<style>
+  :root{--brand:#0fb5a6;--deep:#0b8378;--soft:#e2f9f5;--ink:#0c1b21;--muted:#5c7079;
+    --line:rgba(12,40,45,.12);--bg:#eef4f5;--danger:#e5484d;color-scheme:light}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:"IBM Plex Sans Thai",system-ui,sans-serif;background:var(--bg);color:var(--ink);line-height:1.55;padding:20px 12px 70px}
+  .wrap{max-width:900px;margin:0 auto}
+  h1{font-family:Kanit,sans-serif;font-size:24px;text-align:center}
+  .sub{text-align:center;color:var(--muted);font-size:14px;margin:4px 0 14px}
+  .card{background:#fff;border:1px solid var(--line);border-radius:16px;box-shadow:0 6px 18px -8px rgba(12,40,45,.12);margin-bottom:14px;overflow:hidden}
+  .grid{display:grid;grid-template-columns:minmax(190px,1fr) repeat(4,86px);align-items:center;min-width:560px}
+  .gwrap{overflow-x:auto}
+  .zh{font-family:Kanit,sans-serif;font-size:12.5px;color:var(--deep);text-align:center;padding:9px 4px;background:var(--soft);font-weight:600}
+  .zh:first-child{text-align:left;padding-left:14px}
+  .catrow{background:#f2fbf9;border-top:1px solid var(--line)}
+  .catrow .nm{font-family:Kanit,sans-serif;font-weight:600;font-size:15px;padding:11px 8px 11px 14px;display:flex;align-items:center;gap:8px}
+  .catrow .nm .tg{margin-left:auto;background:none;border:none;font-size:15px;cursor:pointer;color:var(--muted);padding:4px 8px}
+  .subrow{border-top:1px dashed var(--line)}
+  .subrow .nm{font-size:13.5px;padding:8px 8px 8px 30px;color:#213a41}
+  .cell{text-align:center;padding:6px 0}
+  input[type=checkbox]{width:21px;height:21px;accent-color:var(--brand);cursor:pointer}
+  .subs{display:none}.open .subs{display:block}
+  .addsub{border:none;background:none;color:var(--deep);font-family:inherit;font-size:13px;font-weight:600;cursor:pointer;padding:10px 14px 12px 30px;text-align:left;display:block}
+  .toolbar{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px}
+  .btn{flex:1;border:none;border-radius:13px;padding:13px 16px;font-size:14.5px;font-weight:700;font-family:inherit;cursor:pointer;
+    color:#fff;background:linear-gradient(135deg,#2ad0be,var(--deep));box-shadow:0 10px 22px -8px rgba(15,181,166,.5);white-space:nowrap}
+  .btn.ghost{background:#fff;color:var(--deep);border:1.5px solid var(--brand);box-shadow:none}
+  textarea{width:100%;min-height:150px;border:1.5px solid var(--line);border-radius:12px;padding:12px;font-family:ui-monospace,monospace;font-size:12.5px;margin-top:12px;background:#f8fcfc}
+  .hint{font-size:13px;color:var(--muted);margin-top:8px;text-align:center}
+  .toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);background:var(--deep);color:#fff;padding:12px 22px;
+    border-radius:999px;font-weight:600;opacity:0;transition:.3s;pointer-events:none;z-index:9}
+  .toast.show{opacity:1}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>🔒 ตารางสิทธิ์การแจ้งซ่อม</h1>
+  <p class="sub">ติ๊ก ✅ = อนุญาต · เอาออก = ห้ามแจ้ง · แตะ ▾ เพื่อเปิดประเภทย่อย</p>
+
+  <div class="toolbar">
+    <button class="btn ghost" onclick="addCat()">➕ เพิ่มหมวดใหญ่</button>
+    <button class="btn ghost" onclick="toggleAllOpen()">▾ เปิด/ปิดย่อยทั้งหมด</button>
+  </div>
+
+  <div id="cards"></div>
+
+  <div class="toolbar" style="margin-top:4px">
+    <button class="btn" onclick="makeSummary()">📋 สรุป + คัดลอก</button>
+    <button class="btn" onclick="saveJson()">💾 Save เป็น JSON</button>
+  </div>
+  <div class="card" style="padding:14px">
+    <textarea id="out" placeholder="กด 'สรุป + คัดลอก' หรือ 'Save เป็น JSON' — ข้อความจะขึ้นที่นี่ คัดลอกส่งกลับในแชทได้เลย"></textarea>
+    <p class="hint">ติ๊กเสร็จ → กดปุ่ม → ส่งข้อความ/ไฟล์กลับมาในแชท ผมจะตั้งค่าให้ทั้งระบบครับ</p>
+  </div>
+</div>
+<div class="toast" id="tt">✓</div>
+
+<script>
+const ZONES=['บ้านพักพนักงานรายวัน','บ้านพักพนักงานรายเดือน','บ้านพักพนักงานหัวหน้าแผนก','บ้านพักโนนสัน'];
+const SHORTZ=['รายวัน','รายเดือน','หัวหน้าแผนก','โนนสัน'];
+let CATS=[
+ {n:'ไฟฟ้า',ic:'💡',subs:['หลอดไฟไม่ติด','หลอดไฟกะพริบ','ปลั๊กไฟใช้ไม่ได้','สวิตช์ไฟเสีย','เบรกเกอร์ตัดบ่อย','ไฟตก/ไฟกระพริบทั้งห้อง','ไฟรั่ว/ไฟช็อต','สายไฟชำรุด','ไม่มีไฟทั้งห้อง','พัดลมเพดานเสีย','กริ่ง/ออดไม่ดัง','ต้องการติดตั้งปลั๊ก/ไฟเพิ่ม']},
+ {n:'ประปา',ic:'🚰',subs:['ก๊อกน้ำรั่ว/หยด','น้ำไม่ไหล','น้ำไหลอ่อน','ท่อน้ำรั่ว/แตก','ท่อระบายตัน','น้ำรั่วซึมพื้น/ผนัง','ปั๊มน้ำไม่ทำงาน','น้ำขุ่น/มีกลิ่น','ถังเก็บน้ำรั่ว/ลูกลอยเสีย','มิเตอร์น้ำผิดปกติ','วาล์ว/สต๊อปวาล์วเสีย']},
+ {n:'เครื่องปรับอากาศ',ic:'❄️',subs:['แอร์ไม่เย็น','แอร์มีน้ำหยด','แอร์เปิดไม่ติด','แอร์มีเสียงดัง','แอร์มีกลิ่นเหม็น','รีโมทเสีย','ถึงรอบล้างแอร์','แอร์เปิด-ปิดเอง','น้ำแข็งเกาะคอยล์','คอมเพรสเซอร์เสียงดัง']},
+ {n:'ประตู/หน้าต่าง',ic:'🚪',subs:['ประตูปิดไม่สนิท','ลูกบิด/กลอนเสีย','กุญแจเสีย/ค้าง','บานพับหลวม/หลุด','กระจกแตก/ร้าว','มุ้งลวดขาด','หน้าต่างเปิด-ปิดไม่ได้','ประตูบานเลื่อนฝืด','โช้คอัพประตูเสีย','วงกบผุ/ชำรุด']},
+ {n:'หลังคา',ic:'🏚️',subs:['หลังคารั่ว/น้ำหยด','ฝ้าเพดานบวมน้ำ','ฝ้าเพดานหลุด/ทะลุ','กระเบื้องหลังคาแตก','รางน้ำอุดตัน/รั่ว','นก/สัตว์ทำรังบนฝ้า','ฉนวนกันความร้อนหลุด']},
+ {n:'ห้องน้ำ',ic:'🚽',subs:['ชักโครกตัน/กดไม่ลง','ชักโครกน้ำไหลตลอด','ฝักบัว/สายชำระเสีย','อ่างล้างหน้าตัน','ก๊อกอ่างล้างหน้ารั่ว','พื้น/ผนังกระเบื้องหลุด','พื้นแตก/ลื่น','น้ำรั่วซึม','กลิ่นเหม็นจากท่อ','พัดลมดูดอากาศเสีย','ราวแขวน/ที่ใส่สบู่หลุด']},
+ {n:'เฟอร์นิเจอร์',ic:'🛋️',subs:['เตียง/ที่นอนชำรุด','ตู้/ลิ้นชักเสีย','โต๊ะ/เก้าอี้ชำรุด','ชั้นวางหลุด/หัก','บานประตูตู้เสีย','บานพับ/มือจับหลุด','ล้อเลื่อนชำรุด','ต้องการเฟอร์นิเจอร์เพิ่ม']},
+ {n:'อินเทอร์เน็ต/WiFi',ic:'📶',subs:['เน็ตใช้ไม่ได้','เชื่อมต่อ WiFi ไม่ได้','เน็ตช้า','สัญญาณอ่อน/หลุดบ่อย','เราเตอร์ไฟไม่ติด','ต้องการตั้งค่า/เปลี่ยนรหัส WiFi','สายแลน/หัวต่อชำรุด']},
+ {n:'งานก่อสร้าง',ic:'🔨',subs:['ผนังแตกร้าว','ปูน/ฉาบหลุดร่อน','พื้นทรุด/แตก','เพดานรั่ว/ร้าว','บันได/ราวจับชำรุด','ต่อเติม/ซ่อมโครงสร้าง','อื่นๆ (ระบุด้านล่าง)']},
+ {n:'งานทาสี',ic:'🎨',subs:['สีลอก/ซีดจาง','ผนังมีรอยเปื้อน','ต้องการทาสีใหม่','เชื้อรา/คราบดำบนผนัง','ประตู/วงกบสีลอก','ทำกันซึมผนัง']},
+ {n:'งานทำความสะอาด',ic:'🧹',subs:['ท่อ/รางระบายอุดตัน','ทำความสะอาดทั่วไป','กำจัดสิ่งอุดตัน','คราบสกปรกฝังแน่น','กำจัดหยากไย่/ฝุ่น','ล้างแอร์/พัดลม','ตัดหญ้า/ดูแลรอบบ้าน']},
+ {n:'อื่นๆ',ic:'🔧',subs:['ปลวก/แมลง/สัตว์รบกวน','กลิ่นอับ/ความชื้น','เปลี่ยนหลอด/อุปกรณ์ทั่วไป','ติดตั้งอุปกรณ์เพิ่ม','ย้าย/จัดวางเฟอร์นิเจอร์','กุญแจ/ระบบล็อก','งานเบ็ดเตล็ด','อื่นๆ (ระบุด้านล่าง)']}
+];
+/* state: allow[cat][zi], subAllow[cat][sub][zi] — default true */
+const allow={},subAllow={};
+function A(c){if(!allow[c])allow[c]=[true,true,true,true];return allow[c];}
+function SA(c,s){if(!subAllow[c])subAllow[c]={};if(!subAllow[c][s])subAllow[c][s]=[true,true,true,true];return subAllow[c][s];}
+
+function render(){
+  const cards=document.getElementById('cards');
+  cards.innerHTML=CATS.map((c,ci)=>{
+    const head=`<div class="grid"><div class="zh">หมวด / ประเภทย่อย</div>${SHORTZ.map(z=>`<div class="zh">${z}</div>`).join('')}</div>`;
+    const catrow=`<div class="grid catrow"><div class="nm">${c.ic} ${c.n}
+        <button class="tg" onclick="toggleOpen(${ci})" title="เปิด/ปิดประเภทย่อย">▾ ย่อย (${c.subs.length})</button></div>
+      ${ZONES.map((_,zi)=>`<div class="cell"><input type="checkbox" ${A(c.n)[zi]?'checked':''} onchange="setCat(${ci},${zi},this.checked)"></div>`).join('')}</div>`;
+    const subs=c.subs.map(s=>`<div class="grid subrow"><div class="nm">• ${s}</div>
+      ${ZONES.map((_,zi)=>`<div class="cell"><input type="checkbox" ${SA(c.n,s)[zi]?'checked':''} onchange="SA('${esc(c.n)}','${esc(s)}')[${zi}]=this.checked"></div>`).join('')}</div>`).join('');
+    return `<div class="card" id="card${ci}">${head}${catrow}<div class="subs">${subs}
+      <button class="addsub" onclick="addSub(${ci})">➕ เพิ่มประเภทย่อยในหมวดนี้</button></div></div>`;
+  }).join('');
+}
+function esc(s){return String(s).replace(/\\/g,'\\\\').replace(/'/g,"\\'");}
+function toggleOpen(ci){document.getElementById('card'+ci).classList.toggle('open');}
+let allOpen=false;
+function toggleAllOpen(){allOpen=!allOpen;document.querySelectorAll('#cards .card').forEach(el=>el.classList.toggle('open',allOpen));}
+function setCat(ci,zi,v){const c=CATS[ci];A(c.n)[zi]=v;c.subs.forEach(s=>SA(c.n,s)[zi]=v);render();document.getElementById('card'+ci).classList.add('open');}
+function addCat(){
+  const n=prompt('ชื่อหมวดใหญ่ใหม่ (เช่น ระบบรักษาความปลอดภัย)');if(!n||!n.trim())return;
+  CATS.push({n:n.trim(),ic:'🆕',subs:[]});render();toast('เพิ่มหมวด "'+n.trim()+'" แล้ว');
+}
+function addSub(ci){
+  const n=prompt('ชื่อประเภทย่อยใหม่ ในหมวด "'+CATS[ci].n+'"');if(!n||!n.trim())return;
+  CATS[ci].subs.push(n.trim());render();document.getElementById('card'+ci).classList.add('open');
+}
+function buildData(){
+  const data={zones:ZONES,updated:new Date().toISOString().slice(0,10),categories:CATS.map(c=>({
+    name:c.n,icon:c.ic,
+    allow:Object.fromEntries(ZONES.map((z,zi)=>[z,A(c.n)[zi]])),
+    subs:c.subs.map(s=>({name:s,allow:Object.fromEntries(ZONES.map((z,zi)=>[z,SA(c.n,s)[zi]]))}))
+  }))};
+  return data;
+}
+function makeSummary(){
+  const lines=['สิทธิ์การแจ้งซ่อมตามประเภทบ้านพัก:'];
+  ZONES.forEach((z,zi)=>{
+    const bc=CATS.filter(c=>!A(c.n)[zi]).map(c=>c.n);
+    const bs=[];CATS.forEach(c=>{if(A(c.n)[zi])c.subs.forEach(s=>{if(!SA(c.n,s)[zi])bs.push(c.n+'>'+s);});});
+    lines.push('• '+z+' → '+(bc.length||bs.length?
+      (bc.length?'ห้ามหมวด: '+bc.join(', '):'')+(bc.length&&bs.length?' | ':'')+(bs.length?'ห้ามย่อย: '+bs.join(', '):'')
+      :'แจ้งได้ทุกหมวด'));
+  });
+  const extra=CATS.filter(c=>c.ic==='🆕');
+  if(extra.length)lines.push('หมวดใหม่ที่เพิ่ม: '+extra.map(c=>c.n+' ('+c.subs.join(', ')+')').join(' | '));
+  put(lines.join('\n'));
+}
+function saveJson(){
+  const json=JSON.stringify(buildData(),null,2);
+  put(json);
+  try{
+    const a=document.createElement('a');
+    a.href=URL.createObjectURL(new Blob([json],{type:'application/json'}));
+    a.download='easyfix-rights.json';document.body.appendChild(a);a.click();a.remove();
+    toast('💾 บันทึก easyfix-rights.json แล้ว');
+  }catch(e){toast('คัดลอก JSON จากช่องด้านล่างได้เลย');}
+}
+function put(text){
+  const out=document.getElementById('out');out.value=text;out.select();
+  try{navigator.clipboard.writeText(text);toast('คัดลอกแล้ว ✓');}catch(e){try{document.execCommand('copy');toast('คัดลอกแล้ว ✓');}catch(_){}}
+}
+function toast(m){const t=document.getElementById('tt');t.textContent=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),1800);}
+render();
+</script>
+</body>
+</html>
