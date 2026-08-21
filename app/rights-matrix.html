@@ -24,7 +24,9 @@
   .catrow .nm{font-family:Kanit,sans-serif;font-weight:600;font-size:15px;padding:11px 8px 11px 14px;display:flex;align-items:center;gap:8px}
   .catrow .nm .tg{margin-left:auto;background:none;border:none;font-size:15px;cursor:pointer;color:var(--muted);padding:4px 8px}
   .subrow{border-top:1px dashed var(--line)}
-  .subrow .nm{font-size:13.5px;padding:8px 8px 8px 30px;color:#213a41}
+  .subrow .nm{font-size:13.5px;padding:8px 8px 8px 30px;color:#213a41;display:flex;align-items:center;gap:6px}
+  .del{margin-left:auto;background:none;border:none;color:var(--danger);font-size:15px;cursor:pointer;padding:2px 8px;opacity:.65;flex-shrink:0}
+  .del:hover{opacity:1}
   .cell{text-align:center;padding:6px 0}
   input[type=checkbox]{width:21px;height:21px;accent-color:var(--brand);cursor:pointer}
   .subs{display:none}.open .subs{display:block}
@@ -82,6 +84,8 @@ let CATS=[
 ];
 /* state: allow[cat][zi], subAllow[cat][sub][zi] — default true */
 const allow={},subAllow={};
+const ORIG=Object.fromEntries(CATS.map(c=>[c.n,[...c.subs]]));   // snapshot ไว้เทียบว่าลบอะไรไป
+function removedSubs(){const out=[];CATS.forEach(c=>{(ORIG[c.n]||[]).forEach(s=>{if(!c.subs.includes(s))out.push(c.n+'>'+s);});});return out;}
 function A(c){if(!allow[c])allow[c]=[true,true,true,true];return allow[c];}
 function SA(c,s){if(!subAllow[c])subAllow[c]={};if(!subAllow[c][s])subAllow[c][s]=[true,true,true,true];return subAllow[c][s];}
 
@@ -92,7 +96,8 @@ function render(){
     const catrow=`<div class="grid catrow"><div class="nm">${c.ic} ${c.n}
         <button class="tg" onclick="toggleOpen(${ci})" title="เปิด/ปิดประเภทย่อย">▾ ย่อย (${c.subs.length})</button></div>
       ${ZONES.map((_,zi)=>`<div class="cell"><input type="checkbox" ${A(c.n)[zi]?'checked':''} onchange="setCat(${ci},${zi},this.checked)"></div>`).join('')}</div>`;
-    const subs=c.subs.map(s=>`<div class="grid subrow"><div class="nm">• ${s}</div>
+    const subs=c.subs.map((s,si)=>`<div class="grid subrow"><div class="nm">• ${s}
+        <button class="del" onclick="delSub(${ci},${si})" title="ลบประเภทย่อยนี้">🗑️</button></div>
       ${ZONES.map((_,zi)=>`<div class="cell"><input type="checkbox" ${SA(c.n,s)[zi]?'checked':''} onchange="SA('${esc(c.n)}','${esc(s)}')[${zi}]=this.checked"></div>`).join('')}</div>`).join('');
     return `<div class="card" id="card${ci}">${head}${catrow}<div class="subs">${subs}
       <button class="addsub" onclick="addSub(${ci})">➕ เพิ่มประเภทย่อยในหมวดนี้</button></div></div>`;
@@ -107,6 +112,14 @@ function addCat(){
   const n=prompt('ชื่อหมวดใหญ่ใหม่ (เช่น ระบบรักษาความปลอดภัย)');if(!n||!n.trim())return;
   CATS.push({n:n.trim(),ic:'🆕',subs:[]});render();toast('เพิ่มหมวด "'+n.trim()+'" แล้ว');
 }
+function delSub(ci,si){
+  const c=CATS[ci],s=c.subs[si];
+  if(!confirm('ลบประเภทย่อย "'+s+'" ออกจากหมวด "'+c.n+'" ?'))return;
+  c.subs.splice(si,1);
+  if(subAllow[c.n])delete subAllow[c.n][s];
+  render();document.getElementById('card'+ci).classList.add('open');
+  toast('ลบ "'+s+'" แล้ว');
+}
 function addSub(ci){
   const n=prompt('ชื่อประเภทย่อยใหม่ ในหมวด "'+CATS[ci].n+'"');if(!n||!n.trim())return;
   CATS[ci].subs.push(n.trim());render();document.getElementById('card'+ci).classList.add('open');
@@ -116,7 +129,7 @@ function buildData(){
     name:c.n,icon:c.ic,
     allow:Object.fromEntries(ZONES.map((z,zi)=>[z,A(c.n)[zi]])),
     subs:c.subs.map(s=>({name:s,allow:Object.fromEntries(ZONES.map((z,zi)=>[z,SA(c.n,s)[zi]]))}))
-  }))};
+  })),removedSubs:removedSubs()};
   return data;
 }
 function makeSummary(){
@@ -130,6 +143,10 @@ function makeSummary(){
   });
   const extra=CATS.filter(c=>c.ic==='🆕');
   if(extra.length)lines.push('หมวดใหม่ที่เพิ่ม: '+extra.map(c=>c.n+' ('+c.subs.join(', ')+')').join(' | '));
+  const newSubs=[];CATS.forEach(c=>{if(c.ic!=='🆕')c.subs.forEach(s=>{if(!(ORIG[c.n]||[]).includes(s))newSubs.push(c.n+'>'+s);});});
+  if(newSubs.length)lines.push('ย่อยที่เพิ่ม: '+newSubs.join(', '));
+  const rem=removedSubs();
+  if(rem.length)lines.push('ย่อยที่ลบ: '+rem.join(', '));
   put(lines.join('\n'));
 }
 function saveJson(){
