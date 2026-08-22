@@ -430,6 +430,7 @@ function apiAdminAccept(req) {
   if (!f) return { ok: false, error: 'ไม่พบงานซ่อมนี้' };
   var an = adminName(t.code);
   setCell(f.rowIndex, C.status, ST.ACCEPTED);
+  setCell(f.rowIndex, C.progress, 10);                 // รับเรื่องแล้ว = เริ่ม 10%
   setCell(f.rowIndex, C.etaText, req.etaText || '');
   setCell(f.rowIndex, C.adminNote, req.adminNote || '');
   setCell(f.rowIndex, C.acceptedAt, nowStr());

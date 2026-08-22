@@ -19,16 +19,13 @@ HR(เว็บ) ─────┘                        └→ Google Drive (
 
 ## เริ่มใช้งาน
 1. ทดลองก่อน (โหมด DEMO ไม่ต้องตั้งค่าอะไร): เปิด `app/index.html` — login ด้วย **19474** หรือ **19452** (PIN อะไรก็ได้)
-   คอนโซล HR: เปิด `app/hr.html` (กด login ได้เลย)
 2. ใช้งานจริง: ทำตาม [docs/SETUP.md](docs/SETUP.md) — ตั้ง Google Sheets + Apps Script + LINE + Groq
-   แล้วใส่ `API_URL` ใน `app/index.html` และ `app/hr.html`
 
 ## โครงไฟล์
 ```
 Easy Fix/
 ├─ app/           แอปมือถือ + คอนโซล HR (deploy โฟลเดอร์นี้)
 │  ├─ index.html  แอปพนักงาน (PWA)
-│  ├─ hr.html     คอนโซล HR
 │  ├─ manifest.webmanifest · sw.js
 ├─ backend/
 │  ├─ Code.gs     Google Apps Script (คัดลอกไปวางใน Apps Script)
