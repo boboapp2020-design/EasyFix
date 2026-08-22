@@ -171,7 +171,7 @@
   .btn-report .br-ar{font-size:26px;opacity:.9}
 
   /* ---------- categories / urgency / chips ---------- */
-  .cats{display:grid;grid-template-columns:repeat(4,1fr);gap:9px}
+  .cats{display:grid;grid-template-columns:repeat(3,1fr);gap:11px}
   .cat{border:2.5px solid transparent;border-radius:16px;cursor:pointer;transition:.18s;overflow:hidden;background:var(--card);box-shadow:var(--sh-sm);line-height:0}
   .cat img{width:100%;height:auto;display:block}
   .cat:active{transform:scale(.95)}
@@ -778,7 +778,7 @@ function renderSymptoms(cat){
   });
 }
 function renderUrgency(){
-  $('urg').innerHTML=URGENCY.map(u=>`<div class="u" data-u="${u.k}"><div class="ic">${u.ic}</div><b>${u.k}</b><small>${u.d}</small></div>`).join('');
+  $('urg').innerHTML=URGENCY.map(u=>`<div class="u" data-u="${u.k}"><div class="ic">${u.ic}</div><b>${u.k}</b></div>`).join('');
   document.querySelectorAll('#urg .u').forEach(el=>el.onclick=()=>{
     document.querySelectorAll('#urg .u').forEach(x=>x.classList.remove('on'));
     el.classList.add('on');state.urgency=el.dataset.u;
