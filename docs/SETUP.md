@@ -79,6 +79,23 @@
 
 ---
 
+## ขั้นที่ 6.5 — LINE แจ้งเตือนงานใหม่ (ถ้าต้องการ)
+
+1. ไปที่ https://developers.line.biz → Login ด้วยบัญชี LINE → **Create a new provider** (ตั้งชื่ออะไรก็ได้ เช่น EasyFix)
+2. **Create a Messaging API channel** → กรอกชื่อ "Easy Fix แจ้งซ่อม" → สร้าง
+3. แท็บ **Messaging API**:
+   - กด **Issue** ที่ Channel access token (long-lived) → คัดลอก → วางในชีตแท็บ `Config` ที่คีย์ **`LINE_TOKEN`**
+   - **Webhook URL** → วาง URL ของ Apps Script (ลงท้าย `/exec`) → กด Verify → เปิด **Use webhook**
+4. ที่ https://manager.line.biz (LINE Official Account Manager) → ตั้งค่าการตอบกลับ → **ปิด "ข้อความตอบกลับอัตโนมัติ"**
+5. **เพิ่มบอทเป็นเพื่อน** (สแกน QR ในแท็บ Messaging API) หรือ **เชิญบอทเข้ากลุ่ม LINE ของ HR**
+   (ถ้าเข้ากลุ่ม: เปิด "Allow bot to join group chats" ใน LINE Developers ก่อน)
+6. พิมพ์ **`รับแจ้งเตือน`** ในแชท/กลุ่มนั้น → บอทตอบ "✅ ลงทะเบียนแล้ว" → เสร็จ!
+   ต่อจากนี้ทุกครั้งที่มีคนแจ้งซ่อม แชทนั้นจะได้รับข้อความทันที (งานด่วนมากขึ้น 🚨)
+
+> เปลี่ยนผู้รับแจ้งเตือน: พิมพ์ "รับแจ้งเตือน" ในแชทใหม่ ระบบจะย้ายไปแชทล่าสุดที่พิมพ์
+
+---
+
 ## ขั้นที่ 7 — ทดสอบ
 
 1. เปิด PWA → login ด้วยรหัสพนักงานจริง (เช่น 19474) → ตั้ง PIN → เห็นข้อมูลบ้านพัก

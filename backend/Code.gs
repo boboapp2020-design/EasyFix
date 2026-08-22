@@ -51,16 +51,71 @@ function cfg(key) {
   return '';
 }
 function ss() { return SpreadsheetApp.getActiveSpreadsheet(); }
+function setCfg(key, val) {
+  var sh = ss().getSheetByName('Config'); if (!sh) return;
+  var v = sh.getDataRange().getValues();
+  for (var i = 0; i < v.length; i++) if (String(v[i][0]).trim() === key) { sh.getRange(i + 1, 2).setValue(val); return; }
+  sh.appendRow([key, val]);
+}
+var APP_LINK = 'https://boboapp2020-design.github.io/EasyFix/';
 
 // ====================== ROUTER ======================
 function doPost(e) {
   try {
     var req = safeJson(e.postData ? e.postData.contents : '') || {};
+    if (req.events) { handleLineWebhook(req); return json({ ok: true }); }   // LINE webhook
     return json(route(req.action, req));
   } catch (err) {
     log('doPost-error', String(err));
     return json({ ok: false, error: String(err) });
   }
+}
+
+// ====================== LINE แจ้งเตือน ======================
+function lineCall(endpoint, payload) {
+  var token = cfg('LINE_TOKEN'); if (!token) return;
+  UrlFetchApp.fetch('https://api.line.me/v2/bot/' + endpoint, {
+    method: 'post', contentType: 'application/json', muteHttpExceptions: true,
+    headers: { 'Authorization': 'Bearer ' + token },
+    payload: JSON.stringify(payload)
+  });
+}
+function lineReply(replyToken, text) { lineCall('message/reply', { replyToken: replyToken, messages: [{ type: 'text', text: text }] }); }
+function linePush(to, text) { if (to) lineCall('message/push', { to: to, messages: [{ type: 'text', text: text }] }); }
+
+/** webhook: พิมพ์ "รับแจ้งเตือน" ในแชท/กลุ่มที่มีบอท → ลงทะเบียนแชทนั้นเป็นผู้รับแจ้งเตือน */
+function handleLineWebhook(req) {
+  (req.events || []).forEach(function (ev) {
+    try {
+      var src = ev.source || {};
+      var chatId = src.groupId || src.roomId || src.userId;
+      if (ev.type === 'message' && ev.message && ev.message.type === 'text') {
+        var txt = String(ev.message.text || '').trim();
+        if (txt === 'รับแจ้งเตือน' || txt.toLowerCase() === 'subscribe') {
+          setCfg('LINE_TARGET_ID', chatId);
+          lineReply(ev.replyToken, '✅ ลงทะเบียนแล้ว! แชทนี้จะได้รับแจ้งเตือนเมื่อมีงานแจ้งซ่อมใหม่');
+        }
+      } else if (ev.type === 'follow' || ev.type === 'join') {
+        lineReply(ev.replyToken, 'สวัสดีครับ 🔧 Easy Fix\nพิมพ์ "รับแจ้งเตือน" เพื่อให้แชทนี้รับแจ้งเตือนงานซ่อมใหม่');
+      }
+    } catch (err) { log('line-webhook-error', String(err)); }
+  });
+}
+
+/** push แจ้งงานใหม่เข้าแชทที่ลงทะเบียนไว้ */
+function notifyLineNewTicket(t) {
+  try {
+    var target = cfg('LINE_TARGET_ID'); if (!target || !cfg('LINE_TOKEN')) return;
+    var ugIc = { 'ปกติ': '🟢', 'เร่งด่วน': '🟡', 'ด่วนมาก': '🔴' }[t.urgency] || '';
+    var head = (t.urgency === 'ด่วนมาก') ? '🚨 แจ้งซ่อมด่วนมาก!' : '🔔 มีแจ้งซ่อมใหม่';
+    linePush(target,
+      head + ' ' + t.ticketId +
+      '\n👤 ' + t.name + '\n🏠 ' + t.zone + ' ห้อง ' + t.room +
+      '\n🔧 ' + t.category + ' ' + ugIc + ' ' + t.urgency +
+      '\n📝 ' + t.detail +
+      (t.phone ? '\n📞 ' + t.phone : '') +
+      '\n\nเปิดแอป: ' + APP_LINK);
+  } catch (err) { log('line-push-error', String(err)); }
 }
 function doGet(e) { return json({ ok: true, service: 'EasyFix', time: nowStr() }); }
 
@@ -343,6 +398,8 @@ function apiSubmitRepair(req) {
     0, '', '', '', '', '', '', true, ''      // progress..unreadAdmin=true
   ]);
   addLog(ticketId, 'user', p.name, 'แจ้งซ่อม', req.detail, 0, ST.NEW);
+  notifyLineNewTicket({ ticketId: ticketId, name: p.name, zone: p.zone, room: p.room,
+    category: req.category || 'อื่นๆ', urgency: req.urgency || 'ปกติ', detail: req.detail, phone: req.phone || p.phone });
   return { ok: true, data: { ticketId: ticketId } };
 }
 
@@ -532,7 +589,12 @@ function setupSheets() {
   if (tl.getLastRow() === 0) tl.appendRow(['time','ticketId','by','byName','action','detail','progress','status']);
 
   var cf = s.getSheetByName('Config');
-  if (cf.getLastRow() === 0) { cf.appendRow(['key','value']); cf.appendRow(['DRIVE_FOLDER_ID','']); }
+  if (cf.getLastRow() === 0) cf.appendRow(['key','value']);
+  ['DRIVE_FOLDER_ID','LINE_TOKEN','LINE_TARGET_ID'].forEach(function (k) {
+    var v = cf.getDataRange().getValues(), found = false;
+    for (var i = 0; i < v.length; i++) if (String(v[i][0]).trim() === k) found = true;
+    if (!found) cf.appendRow([k, '']);
+  });
 
   var lg = s.getSheetByName('Log');
   if (lg.getLastRow() === 0) lg.appendRow(['time','tag','msg']);
