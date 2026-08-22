@@ -813,6 +813,7 @@ $('btn-submit').onclick=async()=>{
   $('btn-submit').disabled=false;$('btn-submit').textContent='📨 ส่งแจ้งซ่อม';
   if(!r.ok)return showErr(err,r.error||'ส่งไม่สำเร็จ');
   toast('✅ ส่งแล้ว '+r.data.ticketId+' — แจ้งผู้ดูแลระบบเรียบร้อย');
+  clearCache('tk_');clearCache('adm_');   // ให้ลิสต์ดึงของใหม่ ไม่โชว์ cache เก่า
   state.category=null;state.symptoms=[];state.urgency='ปกติ';state.photos=[];$('in-detail').value='';$('cnt').textContent='0';
   $('symptom-card').style.display='none';
   renderCats();renderUrgency();renderPhotos();go('tickets');
@@ -862,6 +863,7 @@ function timeline(logs){
 /* cache-first: โชว์ข้อมูลเดิมทันที แล้วดึงของใหม่มาทับเบื้องหลัง */
 const cacheGet=k=>{try{return JSON.parse(localStorage.getItem('ef_c_'+k));}catch(e){return null;}};
 const cacheSet=(k,v)=>{try{localStorage.setItem('ef_c_'+k,JSON.stringify(v));}catch(e){}};
+const clearCache=p=>{try{Object.keys(localStorage).filter(k=>k.startsWith('ef_c_'+p)).forEach(k=>localStorage.removeItem(k));}catch(e){}};
 function renderTicketLists(){
   $('all-tickets').innerHTML=state.tickets.length?state.tickets.map(t=>tkCard(t,false)).join(''):emptyBox('ยังไม่มีรายการแจ้งซ่อม','📋');
   $('home-tickets').innerHTML=state.tickets.length?state.tickets.slice(0,2).map(t=>tkCard(t,false)).join(''):'<p class="hint">ยังไม่มีรายการ</p>';
@@ -1127,12 +1129,12 @@ async function userAccept(id){
   if(!r.ok)return toast(r.error||'ไม่สำเร็จ');
   toast('👍 รับงานเรียบร้อย');
   $('sheet').innerHTML=ratingBox(id)+`<div style="height:10px"></div><button class="btn ghost" onclick="closeModal()">ไว้ทีหลัง</button>`;
-  bindStars(); loadTickets();
+  bindStars();clearCache('tk_');clearCache('adm_');loadTickets();
 }
 async function submitRate(id){
   if(!_sel)return toast('กรุณาเลือกจำนวนดาว');
   const r=await api('rateTicket',{token:state.token,ticketId:id,score:_sel,comment:($('rate-cm')||{}).value||''});
-  if(r.ok){toast('🙏 ขอบคุณสำหรับคะแนน');closeModal();loadTickets();}
+  if(r.ok){toast('🙏 ขอบคุณสำหรับคะแนน');clearCache('tk_');clearCache('adm_');closeModal();loadTickets();}
 }
 /* ---- ฝั่งแอดมิน ---- */
 function adminSheet(t){
@@ -1177,25 +1179,25 @@ async function adminAccept(id){
     etaText:($('a-eta')||{}).value||'',adminNote:($('a-note')||{}).value||'',
     appointDate:($('a-date')||{}).value||'',appointTime:($('a-time')||{}).value||''});
   if(!r.ok)return toast(r.error||'ไม่สำเร็จ');
-  toast('✅ รับเรื่องแล้ว — แจ้งผู้แจ้งเรียบร้อย');closeModal();loadAdmin();
+  toast('✅ รับเรื่องแล้ว — แจ้งผู้แจ้งเรียบร้อย');clearCache('adm_');clearCache('tk_');closeModal();loadAdmin();
 }
 async function adminReject(id){
   const reason=($('a-note')||{}).value||'';
   if(!reason.trim())return toast('กรุณาระบุเหตุผลในช่องรายละเอียด');
   const r=await api('adminReject',{token:state.token,ticketId:id,reason});
   if(!r.ok)return toast(r.error||'ไม่สำเร็จ');
-  toast('แจ้งผู้แจ้งเรียบร้อย');closeModal();loadAdmin();
+  toast('แจ้งผู้แจ้งเรียบร้อย');clearCache('adm_');clearCache('tk_');closeModal();loadAdmin();
 }
 async function adminUpdate(id){
   const r=await api('adminUpdate',{token:state.token,ticketId:id,
     progress:($('a-prog')||{}).value,note:($('a-note')||{}).value||'',etaText:($('a-eta')||{}).value||''});
   if(!r.ok)return toast(r.error||'ไม่สำเร็จ');
-  toast('💾 บันทึกแล้ว — ผู้แจ้งเห็นความคืบหน้า');closeModal();loadAdmin();
+  toast('💾 บันทึกแล้ว — ผู้แจ้งเห็นความคืบหน้า');clearCache('adm_');clearCache('tk_');closeModal();loadAdmin();
 }
 async function adminClose(id){
   const r=await api('adminClose',{token:state.token,ticketId:id,note:($('a-note')||{}).value||''});
   if(!r.ok)return toast(r.error||'ไม่สำเร็จ');
-  toast('🏁 ปิดงานแล้ว — แจ้งผู้แจ้งให้ตรวจรับ');closeModal();loadAdmin();
+  toast('🏁 ปิดงานแล้ว — แจ้งผู้แจ้งให้ตรวจรับ');clearCache('adm_');clearCache('tk_');closeModal();loadAdmin();
 }
 
 /* ================= HELPERS ================= */
