@@ -794,16 +794,51 @@ $('btn-login').onclick=async()=>{
   enterApp();
 };
 function enterApp(){
-  if(state.role==='admin'){ $('a-hi').textContent='สวัสดี, '+state.profile.name; $('a-sub').textContent=state.profile.position||'ผู้ดูแลงานซ่อม'; go('adash'); }
+  if(state.role==='admin'){ $('a-hi').textContent='สวัสดี, '+state.profile.name; $('a-sub').textContent=state.profile.position||'ผู้ดูแลงานซ่อม';
+    if(window.Notification&&Notification.permission==='default'){try{Notification.requestPermission();}catch(e){}}
+    startAdminPoll(); go('adash'); }
   else{ renderProfile(); renderCats(); go('home'); }
 }
+
+/* ===== แจ้งเตือนงานใหม่สำหรับแอดมิน (poll ระหว่างเปิดแอป) ===== */
+let pollTimer=null, lastTopId=null;
+function startAdminPoll(){ stopAdminPoll(); pollTimer=setInterval(adminPoll,45000); }
+function stopAdminPoll(){ if(pollTimer){clearInterval(pollTimer);pollTimer=null;} lastTopId=null; }
+async function adminPoll(){
+  if(state.role!=='admin'||!state.token||document.hidden)return;
+  const r=await api('adminList',{token:state.token,filter:'ทั้งหมด'});
+  if(!r.ok)return;
+  const tickets=r.data.tickets||[]; cacheSet('adm_ทั้งหมด',r.data);
+  const top=tickets[0];
+  if(top&&lastTopId&&top.ticketId!==lastTopId){
+    const idx=tickets.findIndex(t=>t.ticketId===lastTopId);
+    const fresh=idx<0?tickets.filter(t=>t.status===ST.NEW):tickets.slice(0,idx);
+    if(fresh.length)notifyNewTickets(fresh);
+  }
+  if(top)lastTopId=top.ticketId;
+  state.aTickets=tickets; updateBadges();
+  if($('s-adash').classList.contains('active')||$('s-aqueue').classList.contains('active'))renderAdmin(tickets,r.data.stats);
+}
+function notifyNewTickets(fresh){
+  const n=fresh.length,t0=fresh[0];
+  beep(); toast('🔔 มีแจ้งซ่อมใหม่ '+n+' รายการ');
+  if(window.Notification&&Notification.permission==='granted'){
+    try{new Notification('🔔 Easy Fix — แจ้งซ่อมใหม่',{
+      body:t0.name+' · '+t0.category+' (ห้อง '+t0.room+')'+(n>1?' และอีก '+(n-1)+' รายการ':''),
+      icon:'icon-192.png',tag:'easyfix-new',renotify:true});}catch(e){}
+  }
+}
+function beep(){try{const a=new (window.AudioContext||window.webkitAudioContext)();const o=a.createOscillator(),g=a.createGain();
+  o.connect(g);g.connect(a.destination);o.type='sine';o.frequency.setValueAtTime(880,a.currentTime);
+  g.gain.setValueAtTime(.18,a.currentTime);o.frequency.setValueAtTime(660,a.currentTime+.13);
+  g.gain.exponentialRampToValueAtTime(.001,a.currentTime+.4);o.start();o.stop(a.currentTime+.42);}catch(e){}}
 function renderProfile(){
   const p=state.profile;
   $('hi-name').textContent='สวัสดี, '+(p.name||'').split(' ').slice(-1)[0]+' 👋';
   $('hi-code').textContent='รหัสพนักงาน '+p.empCode;
   $('p-name').textContent=p.name;$('p-dept').textContent=p.dept;$('p-zone').textContent=p.zone;$('p-room').textContent=p.room;
 }
-function logout(){store.del('ef_token');store.del('ef_profile');
+function logout(){stopAdminPoll();store.del('ef_token');store.del('ef_profile');
   try{Object.keys(localStorage).filter(k=>k.startsWith('ef_c_')).forEach(k=>localStorage.removeItem(k));}catch(e){}
   state.tickets=[];state.aTickets=[];state.token=null;state.role='user';state.mode='user';
   document.body.classList.remove('admin');$('in-pin').value='';go('login');}
@@ -982,6 +1017,7 @@ async function loadAdmin(){
 }
 function renderAdmin(tickets,s){
   state.aTickets=tickets;
+  if(lastTopId===null&&tickets.length)lastTopId=tickets[0].ticketId;   // seed กันเตือนย้อนหลัง
   $('a-stats').innerHTML=`
     <div class="stat2"><span class="st-ic" style="background:#e5edff;color:#4f6ef7">📋</span><div class="st-tx"><b style="color:#4f6ef7">${s.neu}</b><span>รอตรวจสอบ</span><small>รายการที่รอตรวจสอบ</small></div></div>
     <div class="stat2"><span class="st-ic" style="background:var(--warn-soft);color:var(--warn)">🔧</span><div class="st-tx"><b style="color:var(--warn)">${s.working}</b><span>กำลังดำเนินการ</span><small>รายการที่กำลังทำ</small></div></div>
