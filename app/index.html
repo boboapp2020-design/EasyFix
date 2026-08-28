@@ -828,10 +828,12 @@ function blockedList(){return (state.profile&&state.profile.blockedCats?String(s
 function zoneIdx(){return (typeof RIGHTS!=='undefined'&&state.profile&&state.profile.zone)?RIGHTS.zones.indexOf(String(state.profile.zone).trim()):-1;}
 function catAllowed(k){
   if(blockedList().includes(k))return false;
+  if(k==='อื่นๆ')return true;                                   // หมวดสำรอง แสดงทุกโซนเสมอ
   const zi=zoneIdx(); if(zi<0)return true;                      // โซนไม่รู้จัก/ยังไม่ login → แสดงหมด
   const c=RIGHTS.cat[k]; return c?!!c.allow[zi]:true;           // หมวดใหม่ที่ไม่อยู่ในไฟล์สิทธิ์ → แสดง
 }
 function subAllowed(k,s){
+  if(k==='อื่นๆ')return true;                                   // หมวดสำรอง เห็นครบ
   const zi=zoneIdx(); if(zi<0)return true;
   const c=RIGHTS.cat[k]; if(!c)return true;
   const a=c.subs[s]; return a?!!a[zi]:true;
@@ -885,7 +887,7 @@ $('btn-submit').onclick=async()=>{
   const extra=$('in-detail').value.trim(),phone=$('in-phone').value.trim();
   if(!state.category)return showErr(err,'กรุณาเลือกหมวดงานซ่อม');
   if(!state.symptoms.length&&!extra)return showErr(err,'กรุณาเลือกอาการที่พบ หรือกรอกรายละเอียด');
-  if(state.symptoms.some(s=>/^อื่นๆ/.test(s))&&!extra){$('in-detail').focus();return showErr(err,'เลือก "อื่นๆ" แล้ว กรุณาระบุรายละเอียดในช่องด้านล่าง');}
+  if((state.category==='อื่นๆ'||state.symptoms.some(s=>/^อื่นๆ/.test(s)))&&!extra){$('in-detail').focus();return showErr(err,'กรุณาระบุรายละเอียดของปัญหาในช่องด้านล่าง');}
   if(!phone)return showErr(err,'กรุณากรอกเบอร์โทร');
   let detail=state.symptoms.join(', ');if(extra)detail+=(detail?' — ':'')+extra;
   $('btn-submit').disabled=true;$('btn-submit').textContent='กำลังส่ง...';
