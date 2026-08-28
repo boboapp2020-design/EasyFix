@@ -805,7 +805,7 @@ let pollTimer=null, lastTopId=null;
 function startAdminPoll(){ stopAdminPoll(); pollTimer=setInterval(adminPoll,45000); }
 function stopAdminPoll(){ if(pollTimer){clearInterval(pollTimer);pollTimer=null;} lastTopId=null; }
 async function adminPoll(){
-  if(state.role!=='admin'||!state.token||document.hidden)return;
+  if(state.role!=='admin'||!state.token)return;   // poll แม้อยู่เบื้องหลัง เพื่อเด้งแจ้งเตือนตอนสลับไปแอปอื่น
   const r=await api('adminList',{token:state.token,filter:'ทั้งหมด'});
   if(!r.ok)return;
   const tickets=r.data.tickets||[]; cacheSet('adm_ทั้งหมด',r.data);
