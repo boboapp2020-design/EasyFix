@@ -1,35 +1,17 @@
 ═══════════════════════════════════════════════
-  Easy Fix — วิธี Deploy ขึ้น Cloudflare Pages
-  (ลากไฟล์ ไม่ต้องต่อ GitHub / ไม่ต้องใช้ CLI)
+  Easy Fix — Deploy บน Cloudflare Workers (ตัวที่ใช้จริง)
 ═══════════════════════════════════════════════
+🌐 ลิงก์แอปจริง:  https://easyfix.boboapp2020.workers.dev/
+📖 คู่มือ:        https://easyfix.boboapp2020.workers.dev/manual.html
 
-สิ่งที่ต้องมี: บัญชี Cloudflare (สมัครฟรีที่ dash.cloudflare.com)
+──────── อัปเดตแอปครั้งต่อไป ────────
+1) แก้ไฟล์ในโฟลเดอร์ app/ (หรือให้ Claude แก้) → จะได้ EasyFix-cloudflare.zip ใหม่
+2) dash.cloudflare.com → Workers & Pages → โปรเจกต์ "easyfix" (Workers)
+3) อัปโหลด zip ทับ (Upload / Deploy ใหม่) → เสร็จ ลิงก์เดิมไม่เปลี่ยน
+4) บนมือถือ: ปิดแอปแล้วเปิดใหม่ 1 รอบ = ได้เวอร์ชันใหม่ (service worker อัปเดตเอง)
 
-──────────── ขั้นตอน ────────────
-
-1) เข้า https://dash.cloudflare.com  → เมนูซ้าย "Workers & Pages"
-
-2) กด  Create  →  แท็บ  "Pages"  →  "Upload assets"
-   (หัวข้ออาจเขียนว่า "Deploy a site" / "Direct Upload")
-
-3) ตั้งชื่อโปรเจกต์ เช่น  easyfix  →  กด Create project
-
-4) ลากทั้งหมด "ภายในโฟลเดอร์ deploy-cloudflare" เข้าไปวาง
-   ⚠️ สำคัญ: ลากเฉพาะ "ไฟล์ข้างใน" (index.html, cat, รูป ฯลฯ)
-      ไม่ใช่ลากตัวโฟลเดอร์ deploy-cloudflare เข้าไป
-   หรือจะลากไฟล์ EasyFix-cloudflare.zip เข้าไปก็ได้ (Cloudflare แตก zip ให้เอง)
-
-5) กด  Deploy site  → รอสักครู่ → ได้ลิงก์:
-       https://easyfix.pages.dev   (แอปพนักงาน)
-       https://easyfix.pages.dev/manual.html   (คู่มือ)
-
-──────────── เสร็จแล้ว ────────────
-• พนักงานเปิดลิงก์ → login รหัสพนักงาน + PIN 1234
-• เพิ่มไปหน้าจอโฮมได้เหมือนเดิม
-• ข้อมูลยังผูก Google Sheets เดิมทุกอย่าง (ไม่ต้องตั้งค่าใหม่)
-
-──────────── อัปเดตแอปครั้งต่อไป ────────────
-เข้าโปรเจกต์ easyfix → Create deployment → ลากไฟล์ชุดใหม่ทับ → Deploy
-(ลิงก์ .pages.dev เดิมไม่เปลี่ยน)
-
-* ไฟล์นี้ลบทิ้งได้ ไม่กระทบการทำงาน *
+──────── ข้อควรรู้ ────────
+• easyfix.pages.dev = โปรเจกต์ Pages เก่า (เทมเพลต) ไม่ได้ใช้ — ลบทิ้งได้เพื่อไม่สับสน
+• ห้ามใช้ manifest.webmanifest บน Workers (เสิร์ฟ MIME ผิด) → ใช้ manifest.json + _headers แล้ว
+• ข้อมูลยังผูก Google Sheets / Apps Script เดิม (script.google.com ไม่โดนบล็อก)
+• GitHub (boboapp2020-design/EasyFix) ยังเป็น backup โค้ดอยู่ แต่ไม่ได้ใช้เป็นโฮสต์แล้ว
