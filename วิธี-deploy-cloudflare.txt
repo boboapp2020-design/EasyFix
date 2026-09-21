@@ -15,3 +15,11 @@
 • ห้ามใช้ manifest.webmanifest บน Workers (เสิร์ฟ MIME ผิด) → ใช้ manifest.json + _headers แล้ว
 • ข้อมูลยังผูก Google Sheets / Apps Script เดิม (script.google.com ไม่โดนบล็อก)
 • GitHub (boboapp2020-design/EasyFix) ยังเป็น backup โค้ดอยู่ แต่ไม่ได้ใช้เป็นโฮสต์แล้ว
+
+=== อัปเดต 2026-09-21: หน้า "สิทธิ์" ในโหมดแอดมิน ===
+ต้องทำ 2 อย่างเพราะแก้ทั้ง backend และ app:
+ 1) Apps Script: เปิด backend/Code.gs → คัดลอกทั้งไฟล์วางทับใน Apps Script → Deploy → Manage deployments → ✏️ → Version: New version → Deploy
+    (ครั้งแรกที่มีคนเข้าใช้ ระบบจะสร้างแท็บ "Rights" ในชีต Easy Fix ให้เองจากสิทธิ์ชุดเดิม)
+ 2) Cloudflare Workers: อัปโหลด EasyFix-cloudflare.zip ทับโปรเจกต์ easyfix เหมือนเดิม
+หลังจากนั้น แอดมินเข้าแอป → แท็บ 🔐 สิทธิ์ → แก้แล้วกด "บันทึกสิทธิ์" → พนักงานเห็นผลทันที
+ไฟล์ app/rights.js และ ตารางสิทธิ์แจ้งซ่อม.html ยังอยู่เป็นค่าสำรอง แต่ของจริงอ่านจากแท็บ Rights ในชีต

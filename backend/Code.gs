@@ -23,13 +23,195 @@ var DEFAULT_PIN = '1234';                 // PIN กลาง (ใช้ได�
 var TOKEN_TTL_DAYS = 30;
 var TZ = 'Asia/Bangkok';
 
-/* สิทธิ์หมวดตามประเภทบ้านพัก [รายวัน, รายเดือน, หัวหน้าแผนก, โนนสัน] — 1=แจ้งได้ */
-var RIGHT_ZONES = ['บ้านพักพนักงานรายวัน','บ้านพักพนักงานรายเดือน','บ้านพักพนักงานหัวหน้าแผนก','บ้านพักโนนสัน'];
-var RIGHTS_CAT = {
-  'ไฟฟ้า':[1,1,1,1], 'ประปา':[1,1,1,1], 'เครื่องปรับอากาศ':[0,0,1,1], 'ประตู/หน้าต่าง':[1,1,1,1],
-  'หลังคา':[0,0,0,0], 'ห้องน้ำ':[0,1,1,1], 'เฟอร์นิเจอร์':[0,0,0,0], 'อินเทอร์เน็ต/WiFi':[0,0,0,0],
-  'งานก่อสร้าง':[0,0,0,0], 'งานทาสี':[0,0,0,0], 'งานทำความสะอาด':[0,0,0,0], 'อื่นๆ':[0,0,0,0]
+/* ====================== สิทธิ์แจ้งซ่อมตามประเภทบ้านพัก ======================
+ * เก็บในแท็บ "Rights": แถวแรก = ['category','sub', ชื่อประเภทบ้านพัก...]
+ *   - แถวที่ sub ว่าง  = สิทธิ์ระดับหมวด (1=เห็น/แจ้งได้, 0=ซ่อน)
+ *   - แถวที่มี sub    = สิทธิ์รายการซ่อมย่อยในหมวดนั้น
+ * แอดมินแก้ได้จากในแอป (หน้า "สิทธิ์") มีผลทันที — ถ้ายังไม่มีแท็บ ระบบสร้างให้จาก DEFAULT_RIGHTS
+ */
+var DEFAULT_RIGHTS = {
+  zones: ["บ้านพักพนักงานรายวัน","บ้านพักพนักงานรายเดือน","บ้านพักพนักงานหัวหน้าแผนก","บ้านพักโนนสัน"],
+  cat: {
+    "ไฟฟ้า": { allow:[1,1,1,1], subs: {
+      "หลอดไฟไม่ติด": [1,1,1,1],
+      "หลอดไฟกะพริบ": [1,1,1,1],
+      "ปลั๊กไฟใช้ไม่ได้": [1,1,1,1],
+      "สวิตช์ไฟเสีย": [1,1,1,1],
+      "เบรกเกอร์ตัดบ่อย": [1,1,1,1],
+      "ไฟตก/ไฟกระพริบทั้งห้อง": [1,1,1,1],
+      "ไฟรั่ว/ไฟช็อต": [1,1,1,1],
+      "สายไฟชำรุด": [0,0,0,0],
+      "ไม่มีไฟทั้งห้อง": [0,0,0,0],
+      "พัดลมเพดานเสีย": [0,1,1,1],
+      "กริ่ง/ออดไม่ดัง": [0,0,0,0],
+      "ต้องการติดตั้งปลั๊ก/ไฟเพิ่ม": [0,0,0,0],
+    }},
+    "ประปา": { allow:[1,1,1,1], subs: {
+      "ก๊อกน้ำรั่ว/หยด": [1,1,1,1],
+      "น้ำไม่ไหล": [0,0,0,1],
+      "น้ำไหลอ่อน": [0,0,0,0],
+      "ท่อน้ำรั่ว/แตก": [1,1,1,1],
+      "ท่อระบายตัน": [0,1,1,1],
+      "น้ำรั่วซึมพื้น/ผนัง": [0,0,0,0],
+      "ปั๊มน้ำไม่ทำงาน": [0,0,0,0],
+      "น้ำขุ่น/มีกลิ่น": [0,0,0,0],
+      "ถังเก็บน้ำรั่ว/ลูกลอยเสีย": [0,0,0,0],
+      "มิเตอร์น้ำผิดปกติ": [0,0,0,0],
+      "วาล์ว/สต๊อปวาล์วเสีย": [0,0,0,0],
+    }},
+    "เครื่องปรับอากาศ": { allow:[0,0,1,1], subs: {
+      "แอร์ไม่เย็น": [0,0,1,1],
+      "แอร์มีน้ำหยด": [0,0,1,1],
+      "แอร์เปิดไม่ติด": [0,0,1,1],
+      "แอร์มีเสียงดัง": [0,0,1,1],
+      "แอร์มีกลิ่นเหม็น": [0,0,0,0],
+      "รีโมทเสีย": [0,0,0,0],
+      "ถึงรอบล้างแอร์": [0,0,0,0],
+      "แอร์เปิด-ปิดเอง": [0,0,0,0],
+      "น้ำแข็งเกาะคอยล์": [0,0,0,0],
+      "คอมเพรสเซอร์เสียงดัง": [0,0,0,0],
+    }},
+    "ประตู/หน้าต่าง": { allow:[1,1,1,1], subs: {
+      "ประตูปิดไม่สนิท": [1,1,1,1],
+      "ลูกบิด/กลอนเสีย": [1,1,1,1],
+      "กุญแจเสีย/ค้าง": [0,0,0,0],
+      "บานพับหลวม/หลุด": [0,0,0,0],
+      "กระจกแตก/ร้าว": [0,0,0,0],
+      "มุ้งลวดขาด": [0,0,0,0],
+      "หน้าต่างเปิด-ปิดไม่ได้": [0,0,0,0],
+      "ประตูบานเลื่อนฝืด": [0,0,0,0],
+      "โช้คอัพประตูเสีย": [0,0,0,0],
+      "วงกบผุ/ชำรุด": [0,0,0,0],
+    }},
+    "หลังคา": { allow:[0,0,0,0], subs: {
+      "หลังคารั่ว/น้ำหยด": [0,0,0,0],
+      "ฝ้าเพดานบวมน้ำ": [0,0,0,0],
+      "ฝ้าเพดานหลุด/ทะลุ": [0,0,0,0],
+      "กระเบื้องหลังคาแตก": [0,0,0,0],
+      "รางน้ำอุดตัน/รั่ว": [0,0,0,0],
+      "นก/สัตว์ทำรังบนฝ้า": [0,0,0,0],
+      "ฉนวนกันความร้อนหลุด": [0,0,0,0],
+    }},
+    "ห้องน้ำ": { allow:[0,1,1,1], subs: {
+      "ชักโครกตัน/กดไม่ลง": [0,1,1,1],
+      "ชักโครกน้ำไหลตลอด": [0,1,1,1],
+      "ฝักบัว/สายชำระเสีย": [0,1,1,1],
+      "อ่างล้างหน้าตัน": [0,1,1,1],
+      "ก๊อกอ่างล้างหน้ารั่ว": [0,1,1,1],
+      "พื้น/ผนังกระเบื้องหลุด": [0,1,1,1],
+      "น้ำรั่วซึม": [0,1,1,1],
+      "กลิ่นเหม็นจากท่อ": [0,1,1,1],
+    }},
+    "เฟอร์นิเจอร์": { allow:[0,0,0,0], subs: {
+      "เตียง/ที่นอนชำรุด": [0,0,0,0],
+      "ตู้/ลิ้นชักเสีย": [0,0,0,0],
+      "โต๊ะ/เก้าอี้ชำรุด": [0,0,0,0],
+      "ชั้นวางหลุด/หัก": [0,0,0,0],
+      "บานประตูตู้เสีย": [0,0,0,0],
+      "บานพับ/มือจับหลุด": [0,0,0,0],
+      "ล้อเลื่อนชำรุด": [0,0,0,0],
+      "ต้องการเฟอร์นิเจอร์เพิ่ม": [0,0,0,0],
+    }},
+    "อินเทอร์เน็ต/WiFi": { allow:[0,0,0,0], subs: {
+      "เน็ตใช้ไม่ได้": [0,0,0,0],
+      "เชื่อมต่อ WiFi ไม่ได้": [0,0,0,0],
+      "เน็ตช้า": [0,0,0,0],
+      "สัญญาณอ่อน/หลุดบ่อย": [0,0,0,0],
+      "เราเตอร์ไฟไม่ติด": [0,0,0,0],
+      "ต้องการตั้งค่า/เปลี่ยนรหัส WiFi": [0,0,0,0],
+      "สายแลน/หัวต่อชำรุด": [0,0,0,0],
+    }},
+    "งานก่อสร้าง": { allow:[0,0,0,0], subs: {
+      "ผนังแตกร้าว": [0,0,0,0],
+      "ปูน/ฉาบหลุดร่อน": [0,0,0,0],
+      "พื้นทรุด/แตก": [0,0,0,0],
+      "เพดานรั่ว/ร้าว": [0,0,0,0],
+      "บันได/ราวจับชำรุด": [0,0,0,0],
+      "ต่อเติม/ซ่อมโครงสร้าง": [0,0,0,0],
+    }},
+    "งานทาสี": { allow:[0,0,0,0], subs: {
+      "สีลอก/ซีดจาง": [0,0,0,0],
+      "ผนังมีรอยเปื้อน": [0,0,0,0],
+      "ต้องการทาสีใหม่": [0,0,0,0],
+      "เชื้อรา/คราบดำบนผนัง": [0,0,0,0],
+      "ประตู/วงกบสีลอก": [0,0,0,0],
+      "ทำกันซึมผนัง": [0,0,0,0],
+    }},
+    "งานทำความสะอาด": { allow:[0,0,0,0], subs: {
+      "ท่อ/รางระบายอุดตัน": [0,0,0,0],
+      "ทำความสะอาดทั่วไป": [0,0,0,0],
+      "กำจัดสิ่งอุดตัน": [0,0,0,0],
+      "คราบสกปรกฝังแน่น": [0,0,0,0],
+      "กำจัดหยากไย่/ฝุ่น": [0,0,0,0],
+      "ล้างแอร์/พัดลม": [0,0,0,0],
+      "ตัดหญ้า/ดูแลรอบบ้าน": [0,0,0,0],
+    }},
+    "อื่นๆ": { allow:[1,1,1,1], subs: {
+      "ปลวก/แมลง/สัตว์รบกวน": [0,0,0,0],
+      "กลิ่นอับ/ความชื้น": [0,0,0,0],
+      "เปลี่ยนหลอด/อุปกรณ์ทั่วไป": [0,0,0,0],
+      "ติดตั้งอุปกรณ์เพิ่ม": [0,0,0,0],
+      "ย้าย/จัดวางเฟอร์นิเจอร์": [0,0,0,0],
+      "กุญแจ/ระบบล็อก": [0,0,0,0],
+      "งานเบ็ดเตล็ด": [0,0,0,0],
+    }},
+  }
 };
+function rightsSheet() {
+  var s = ss(), sh = s.getSheetByName('Rights');
+  if (!sh) { sh = s.insertSheet('Rights'); writeRights(sh, DEFAULT_RIGHTS); }
+  return sh;
+}
+function normFlags(a, n) { var out = []; for (var i = 0; i < n; i++) out.push((a && Number(a[i])) ? 1 : 0); return out; }
+function readRights() {
+  try { var c = CacheService.getScriptCache().get('rights'); if (c) return JSON.parse(c); } catch (e) {}
+  var sh = rightsSheet(), d = sh.getDataRange().getValues();
+  if (d.length < 1 || d[0].length < 3) { writeRights(sh, DEFAULT_RIGHTS); d = sh.getDataRange().getValues(); }
+  var zones = d[0].slice(2).map(function (z) { return String(z).trim(); }).filter(Boolean), nz = zones.length;
+  var cat = {}, order = [];
+  for (var i = 1; i < d.length; i++) {
+    var c = String(d[i][0]).trim(); if (!c) continue;
+    var sub = String(d[i][1]).trim(), flags = normFlags(d[i].slice(2), nz);
+    if (!cat[c]) { cat[c] = { allow: normFlags([], nz), subs: {} }; order.push(c); }
+    if (!sub) cat[c].allow = flags; else cat[c].subs[sub] = flags;
+  }
+  var R = { zones: zones, order: order, cat: cat };
+  try { CacheService.getScriptCache().put('rights', JSON.stringify(R), 300); } catch (e) {}
+  return R;
+}
+function writeRights(sh, R) {
+  var zones = (R.zones || []).map(function (z) { return String(z).trim(); }).filter(Boolean), nz = zones.length;
+  var rows = [['category', 'sub'].concat(zones)];
+  (R.order || Object.keys(R.cat || {})).forEach(function (c) {
+    var o = (R.cat || {})[c]; if (!o) return;
+    rows.push([c, ''].concat(normFlags(o.allow, nz)));
+    Object.keys(o.subs || {}).forEach(function (s) { if (String(s).trim()) rows.push([c, s].concat(normFlags(o.subs[s], nz))); });
+  });
+  sh.clearContents();
+  sh.getRange(1, 1, rows.length, rows[0].length).setValues(rows);
+  try { CacheService.getScriptCache().remove('rights'); } catch (e) {}
+}
+/** ทุกคนอ่านได้ (ใช้ซ่อนหมวด/รายการที่ไม่มีสิทธิ์ในหน้าแจ้งซ่อม) */
+function apiGetRights(req) { return { ok: true, data: { rights: readRights() } }; }
+/** แอดมิน: บันทึกสิทธิ์ทั้งชุด (เพิ่ม/ลด หมวด, รายการซ่อม, ประเภทบ้านพัก) */
+function apiAdminSaveRights(req) {
+  var t = requireAdmin(req); if (!t) return { ok: false, error: 'ไม่มีสิทธิ์' };
+  var R = req.rights;
+  if (!R || !R.zones || !R.zones.length || !R.cat) return { ok: false, error: 'ข้อมูลสิทธิ์ไม่ถูกต้อง' };
+  var clean = { zones: [], order: [], cat: {} }, seen = {};
+  R.zones.forEach(function (z) { z = String(z || '').trim(); if (z && !seen[z]) { seen[z] = 1; clean.zones.push(z); } });
+  if (!clean.zones.length) return { ok: false, error: 'ต้องมีประเภทบ้านพักอย่างน้อย 1 ประเภท' };
+  (R.order || Object.keys(R.cat)).forEach(function (c) {
+    c = String(c || '').trim(); var o = R.cat[c]; if (!c || !o || clean.cat[c]) return;
+    var subs = {};
+    Object.keys(o.subs || {}).forEach(function (s) { s = String(s).trim(); if (s) subs[s] = normFlags(o.subs[s], clean.zones.length); });
+    clean.cat[c] = { allow: normFlags(o.allow, clean.zones.length), subs: subs }; clean.order.push(c);
+  });
+  if (!clean.order.length) return { ok: false, error: 'ต้องมีหมวดอย่างน้อย 1 หมวด' };
+  writeRights(rightsSheet(), clean);
+  log('rights-saved', t.code + ' zones=' + clean.zones.length + ' cats=' + clean.order.length);
+  return { ok: true, data: { rights: readRights() } };
+}
 
 var ST = {
   NEW:      'รอตรวจสอบ',
@@ -141,6 +323,9 @@ function route(action, req) {
     case 'adminResetPin':  return apiAdminResetPin(req);
     case 'adminAddEmp':    return apiAdminAddEmp(req);
     case 'adminDeleteEmp': return apiAdminDeleteEmp(req);
+    // --- สิทธิ์แผนก ---
+    case 'getRights':       return apiGetRights(req);
+    case 'adminSaveRights': return apiAdminSaveRights(req);
     default:             return { ok: false, error: 'unknown action: ' + action };
   }
 }
@@ -172,7 +357,7 @@ function empSheet() {
   var s = ss();
   var e = s.getSheetByName('Employees');
   if (e && e.getLastRow() > 1) return e;
-  var skip = ['Tickets','TicketLog','Config','Log','Admins'];
+  var skip = ['Tickets','TicketLog','Config','Log','Admins','Rights'];
   var sheets = s.getSheets();
   for (var i = 0; i < sheets.length; i++)
     if (skip.indexOf(sheets[i].getName()) < 0 && sheets[i].getLastRow() > 1) return sheets[i];
@@ -209,7 +394,7 @@ function apiLogin(req) {
     if (!aHash) { if (pin !== DEFAULT_PIN) return { ok: false, error: 'PIN ไม่ถูกต้อง' }; }
     else if (sha256(pin + SALT) !== aHash) return { ok: false, error: 'PIN ไม่ถูกต้อง' };
     return { ok: true, data: { token: makeToken(String(req.empCode), 'admin'),
-      profile: { empCode: String(ad.row[0]), name: ad.row[1], position: ad.row[2] || 'ผู้ดูแลงานซ่อม', role: 'admin' } } };
+      profile: { empCode: String(ad.row[0]), name: ad.row[1], position: ad.row[2] || 'ผู้ดูแลงานซ่อม', role: 'admin' }, rights: readRights() } };
   }
 
   var emp = findEmpRow(req.empCode);
@@ -217,7 +402,7 @@ function apiLogin(req) {
   var pinHash = emp.row[6];
   if (!pinHash) { if (pin !== DEFAULT_PIN) return { ok: false, error: 'PIN ไม่ถูกต้อง' }; }
   else if (sha256(pin + SALT) !== pinHash) return { ok: false, error: 'PIN ไม่ถูกต้อง' };
-  return { ok: true, data: { token: makeToken(String(req.empCode), 'user'), profile: empProfile(emp.row) } };
+  return { ok: true, data: { token: makeToken(String(req.empCode), 'user'), profile: empProfile(emp.row), rights: readRights() } };
 }
 
 /** เปลี่ยน PIN (พนักงานหรือแอดมิน) */
@@ -382,9 +567,9 @@ function apiSubmitRepair(req) {
   if (!req.detail) return { ok: false, error: 'กรุณากรอกรายละเอียด' };
   var blocked = String(emp.row[9] || '').split(',').map(function(s){return s.trim();}).filter(Boolean);
   if (blocked.indexOf(req.category) >= 0) return { ok: false, error: 'หมวด "' + req.category + '" ไม่เปิดให้แจ้งตามสิทธิ์ของคุณ' };
-  var zi = RIGHT_ZONES.indexOf(String(emp.row[4] || '').trim());
-  if (zi >= 0 && RIGHTS_CAT[req.category] && !RIGHTS_CAT[req.category][zi])
-    return { ok: false, error: 'หมวด "' + req.category + '" ไม่เปิดให้แจ้งสำหรับ' + RIGHT_ZONES[zi] };
+  var R = readRights(), zi = R.zones.indexOf(String(emp.row[4] || '').trim()), rc = R.cat[req.category];
+  if (zi >= 0 && rc && req.category !== 'อื่นๆ' && !rc.allow[zi])
+    return { ok: false, error: 'หมวด "' + req.category + '" ไม่เปิดให้แจ้งสำหรับ' + R.zones[zi] };
 
   var now = new Date(), ticketId = newTicketId(), p = empProfile(emp.row);
   var photoUrls = savePhotos(req.photos, ticketId);
@@ -598,6 +783,7 @@ function setupSheets() {
 
   var lg = s.getSheetByName('Log');
   if (lg.getLastRow() === 0) lg.appendRow(['time','tag','msg']);
+  rightsSheet();   // สร้างแท็บ Rights จากค่าเริ่มต้นถ้ายังไม่มี
 }
 
 /** อัปเกรดชีต Tickets เดิมให้มีคอลัมน์ใหม่ (รันครั้งเดียวถ้าเคยใช้เวอร์ชันก่อน) */

@@ -179,6 +179,37 @@
   .cat{position:relative}
   .cat.lock{opacity:.42;filter:grayscale(.6)}
   .cat.lock::after{content:"🔒";position:absolute;top:6px;right:8px;font-size:15px;filter:none;opacity:1}
+  .cat.cat-tx{line-height:1.25;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;padding:10px 6px;aspect-ratio:1/0.88;text-align:center;font-size:12.5px;font-weight:700;color:var(--brand-deep)}
+  .cat.cat-tx .ci{font-size:32px}
+  /* ---------- admin: rights ---------- */
+  .sw{position:relative;width:46px;height:26px;flex-shrink:0;display:inline-block}
+  .sw input{opacity:0;width:0;height:0;position:absolute}
+  .sw i{position:absolute;inset:0;background:#cfd8dc;border-radius:999px;transition:.2s;cursor:pointer}
+  .sw i::after{content:"";position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;background:#fff;box-shadow:0 2px 6px rgba(0,0,0,.22);transition:.2s}
+  .sw input:checked+i{background:linear-gradient(135deg,var(--brand-2),var(--brand-deep))}
+  .sw input:checked+i::after{transform:translateX(20px)}
+  .rz-cat{background:var(--card);border-radius:18px;box-shadow:var(--sh-sm);margin-bottom:10px;overflow:hidden;border:1.5px solid transparent}
+  .rz-cat.open{border-color:var(--brand-soft)}
+  .rz-cat.off{opacity:.62}
+  .rz-head{display:flex;align-items:center;gap:12px;padding:12px 14px;cursor:pointer}
+  .rz-head img{width:44px;height:44px;border-radius:12px;object-fit:cover;flex-shrink:0}
+  .rz-head .rz-em{width:44px;height:44px;border-radius:12px;background:var(--brand-soft);display:grid;place-items:center;font-size:24px;flex-shrink:0}
+  .rz-head .rz-nm{flex:1;min-width:0} .rz-head .rz-nm b{display:block;font-size:15px} .rz-head .rz-nm small{color:var(--muted);font-size:12px}
+  .rz-caret{color:var(--muted);font-size:18px;transition:.2s;margin-left:2px} .rz-cat.open .rz-caret{transform:rotate(180deg)}
+  .rz-subs{border-top:1px dashed var(--line);padding:6px 14px 14px}
+  .rz-sub{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--line);font-size:14px}
+  .rz-sub:last-of-type{border-bottom:none} .rz-sub span{flex:1;min-width:0}
+  .rz-sub.dis span{color:var(--muted)}
+  .rz-x{border:none;background:var(--danger-soft);color:var(--danger);width:30px;height:30px;border-radius:9px;font-size:15px;cursor:pointer;flex-shrink:0}
+  .rz-add{display:flex;gap:8px;margin-top:10px} .rz-add input{flex:1;padding:11px 13px;font-size:14px}
+  .rz-tools{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+  .rz-tools button{border:none;background:var(--brand-soft);color:var(--brand-deep);font-family:inherit;font-weight:700;font-size:12.5px;padding:8px 12px;border-radius:10px;cursor:pointer}
+  .rz-tools button.dn{background:var(--danger-soft);color:var(--danger)}
+  .rz-bar{position:sticky;bottom:calc(88px + var(--safe-b));z-index:15;display:flex;gap:8px;padding:10px;border-radius:18px;
+    background:var(--glass);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);border:1px solid var(--glass-brd);box-shadow:var(--sh-lg);margin-top:6px}
+  .rz-bar .btn{margin:0;padding:13px} .rz-bar .btn.ghost{flex:0 0 auto;width:auto;padding:13px 16px}
+  .rz-dirty{font-size:12px;color:var(--warn);font-weight:700;margin:0 0 8px;text-align:center}
+  .rz-zone-row{display:flex;align-items:center;gap:8px;padding:10px 0;border-bottom:1px solid var(--line)} .rz-zone-row input{flex:1;padding:10px 12px;font-size:14px}
   .urg{display:flex;gap:10px}
   .urg .u{flex:1;border:1.5px solid var(--line);border-radius:16px;padding:14px 4px;text-align:center;cursor:pointer;background:var(--card);transition:.18s;box-shadow:var(--sh-sm)}
   .urg .u .ic{font-size:24px} .urg .u b{display:block;font-size:14px;margin-top:6px} .urg .u small{display:block;font-size:10.5px;color:var(--muted);margin-top:2px}
@@ -569,6 +600,18 @@
     <div id="a-list"></div>
   </section>
 
+  <!-- ============ ADMIN: RIGHTS ============ -->
+  <section id="s-arights" class="screen">
+    <div class="topbar"><h1>🔐 สิทธิ์แจ้งซ่อมตามแผนก</h1><div class="sub">เปิด/ปิดหมวด · เพิ่ม/ลดรายการซ่อม ของแต่ละประเภทบ้านพัก</div></div>
+    <div class="filters" id="rz-zones"></div>
+    <div class="hint" style="margin:-2px 0 12px">แตะหมวดเพื่อดูรายการซ่อมย่อย · สวิตช์ = เปิดให้ประเภทบ้านพักที่เลือกแจ้งได้ · ปิด = ซ่อนจากพนักงาน</div>
+    <div id="rz-body"></div>
+    <button class="btn ghost" onclick="rzAddCat()">➕ เพิ่มหมวดใหม่</button>
+    <div style="height:10px"></div>
+    <div class="rz-dirty" id="rz-dirty" style="display:none">● มีการแก้ไขที่ยังไม่บันทึก</div>
+    <div class="rz-bar"><button class="btn" onclick="rzSave()">💾 บันทึกสิทธิ์</button><button class="btn ghost" onclick="rzReset()">↩ ยกเลิก</button></div>
+  </section>
+
   <nav class="nav" id="nav" style="display:none"></nav>
 </div>
 
@@ -620,6 +663,19 @@ Object.keys(PROBLEMS).forEach(k=>{
 let state={token:null,profile:null,role:'user',mode:'user',category:null,symptoms:[],urgency:'ปกติ',photos:[],tickets:[],aTickets:[],filter:'ทั้งหมด'};
 const store={get(k){try{return localStorage.getItem(k)}catch(e){return null}},set(k,v){try{localStorage.setItem(k,v)}catch(e){}},del(k){try{localStorage.removeItem(k)}catch(e){}}};
 const $=id=>document.getElementById(id);
+
+/* ===== สิทธิ์ตามประเภทบ้านพัก — โหลดจากชีต Rights (ผ่าน API) · rights.js เป็นค่าเริ่มต้นสำรอง ===== */
+let RT=(typeof RIGHTS!=='undefined')?JSON.parse(JSON.stringify(RIGHTS)):{zones:[],cat:{}};
+(function(){ try{const c=JSON.parse(store.get('ef_rights')); if(c&&c.zones&&c.cat)RT=c; }catch(e){} })();
+function setRights(r){ if(!r||!r.zones||!r.cat)return false; const j=JSON.stringify(r), changed=j!==JSON.stringify(RT); RT=r; store.set('ef_rights',j); return changed; }
+async function refreshRights(){ try{ const r=await api('getRights',{}); if(r.ok&&r.data.rights){ if(setRights(r.data.rights)&&state.role!=='admin')renderCats(); } }catch(e){} }
+function rtOrder(){ return (RT.order&&RT.order.length)?RT.order:Object.keys(RT.cat||{}); }
+/** หมวดทั้งหมด = 12 หมวดมาตรฐาน (มีรูป) + หมวดที่แอดมินเพิ่มเอง (แสดงเป็นไอคอน+ชื่อ) */
+function allCats(){ const base=CATEGORIES.slice(), have=new Set(base.map(c=>c.k));
+  rtOrder().forEach(k=>{ if(!have.has(k)){ base.push({k,ic:'🛠️',img:''}); have.add(k); } }); return base; }
+/** รายการซ่อมย่อยของหมวด: ถ้าชีต Rights มีรายการของหมวดนี้ ใช้จากชีต (แอดมินเพิ่ม/ลบได้) ไม่งั้นใช้ค่าเริ่มต้น */
+function subsFor(cat){ const c=RT.cat[cat]; const fromRt=c&&c.subs?Object.keys(c.subs):[];
+  const list=(fromRt.length?fromRt:(PROBLEMS[cat]||[])).filter(s=>!/^อื่นๆ/.test(s)); list.push(OTHER); return list; }
 
 /* ================= DEMO ================= */
 const DEMO_EMP={'19474':{name:'นาย อภิโชติ ศรัทธาพิทักษ์',dept:'ผู้จัดการไร่ชุมชน 2',zone:'บ้านพักโนนสัน',room:'NSA2'},
@@ -688,6 +744,8 @@ function demoApi(action,p){return new Promise(res=>setTimeout(()=>{
   if(action==='adminAddEmp'){ if(DEMO_EMP[p.empCode])return res({ok:false,error:'มีรหัสพนักงานนี้อยู่แล้ว'});
     DEMO_EMP[p.empCode]={name:p.name,dept:p.dept,zone:p.zone,room:p.room}; return res({ok:true,data:{}}); }
   if(action==='adminDeleteEmp'){ delete DEMO_EMP[p.empCode]; return res({ok:true,data:{}}); }
+  if(action==='getRights'){ return res({ok:true,data:{rights:RT}}); }
+  if(action==='adminSaveRights'){ return res({ok:true,data:{rights:p.rights}}); }
   res({ok:false,error:'demo: '+action});
 },350));}
 
@@ -700,7 +758,7 @@ async function api(action,payload){
 
 /* ================= NAV ================= */
 const NAV_USER=[{k:'home',ic:'🏠',t:'หน้าหลัก'},{k:'report',ic:'➕',t:'แจ้งซ่อม'},{k:'tickets',ic:'📋',t:'งานซ่อม'},{k:'logout',ic:'🚪',t:'ออก'}];
-const NAV_ADMIN=[{k:'adash',ic:'📊',t:'ภาพรวม'},{k:'aqueue',ic:'🗂️',t:'คิวงาน'},{k:'aemp',ic:'👥',t:'พนักงาน'},{k:'logout',ic:'🚪',t:'ออก'}];
+const NAV_ADMIN=[{k:'adash',ic:'📊',t:'ภาพรวม'},{k:'aqueue',ic:'🗂️',t:'คิวงาน'},{k:'aemp',ic:'👥',t:'พนักงาน'},{k:'arights',ic:'🔐',t:'สิทธิ์'},{k:'logout',ic:'🚪',t:'ออก'}];
 function renderNav(cur){
   const items=state.role==='admin'?NAV_ADMIN:NAV_USER;
   $('nav').innerHTML=items.map(i=>`<button data-go="${i.k}" class="${i.k===cur?'on':''}">
@@ -723,6 +781,8 @@ function go(name){
   window.scrollTo(0,0);
   if(name==='tickets'||name==='home')loadTickets();
   if(name==='adash'||name==='aqueue')loadAdmin();
+  if(name==='arights')openRights();
+  if(name==='report')refreshRights();
 }
 /* ===== hamburger menu + change PIN ===== */
 function openMenu(){
@@ -789,6 +849,7 @@ $('btn-login').onclick=async()=>{
   $('btn-login').disabled=false;$('btn-login').textContent='เข้าสู่ระบบ';
   if(!r.ok)return showErr(err,r.error||'เข้าสู่ระบบไม่สำเร็จ');
   state.token=r.data.token;state.profile=r.data.profile;state.role=r.data.profile.role||'user';
+  if(r.data.rights)setRights(r.data.rights);
   document.body.classList.toggle('admin',state.role==='admin');
   if($('chk-remember').checked){store.set('ef_token',state.token);store.set('ef_profile',JSON.stringify(state.profile));}
   enterApp();
@@ -798,6 +859,7 @@ function enterApp(){
     if(window.Notification&&Notification.permission==='default'){try{Notification.requestPermission();}catch(e){}}
     startAdminPoll(); go('adash'); }
   else{ renderProfile(); renderCats(); go('home'); }
+  refreshRights();
 }
 
 /* ===== แจ้งเตือนงานใหม่สำหรับแอดมิน (poll ระหว่างเปิดแอป) ===== */
@@ -860,22 +922,23 @@ function forgotPin(){
 /* ================= REPORT ================= */
 /* ===== สิทธิ์ตามประเภทบ้านพัก (จาก rights.js) + บล็อกรายคน — ไม่มีสิทธิ์ = ซ่อนไปเลย ===== */
 function blockedList(){return (state.profile&&state.profile.blockedCats?String(state.profile.blockedCats).split(','):[]).map(s=>s.trim()).filter(Boolean);}
-function zoneIdx(){return (typeof RIGHTS!=='undefined'&&state.profile&&state.profile.zone)?RIGHTS.zones.indexOf(String(state.profile.zone).trim()):-1;}
+function zoneIdx(){return (RT.zones&&state.profile&&state.profile.zone)?RT.zones.indexOf(String(state.profile.zone).trim()):-1;}
 function catAllowed(k){
   if(blockedList().includes(k))return false;
   if(k==='อื่นๆ')return true;                                   // หมวดสำรอง แสดงทุกโซนเสมอ
   const zi=zoneIdx(); if(zi<0)return true;                      // โซนไม่รู้จัก/ยังไม่ login → แสดงหมด
-  const c=RIGHTS.cat[k]; return c?!!c.allow[zi]:true;           // หมวดใหม่ที่ไม่อยู่ในไฟล์สิทธิ์ → แสดง
+  const c=RT.cat[k]; return c?!!c.allow[zi]:true;           // หมวดใหม่ที่ไม่อยู่ในไฟล์สิทธิ์ → แสดง
 }
 function subAllowed(k,s){
-  if(k==='อื่นๆ')return true;                                   // หมวดสำรอง เห็นครบ
+  if(k==='อื่นๆ'||s===OTHER)return true;                                   // หมวดสำรอง / "อื่นๆ (ระบุเพิ่มเติม)" เห็นเสมอ
   const zi=zoneIdx(); if(zi<0)return true;
-  const c=RIGHTS.cat[k]; if(!c)return true;
+  const c=RT.cat[k]; if(!c)return true;
   const a=c.subs[s]; return a?!!a[zi]:true;
 }
 function renderCats(){
-  const visible=CATEGORIES.filter(c=>catAllowed(c.k));
-  $('cats').innerHTML=visible.map(c=>`<div class="cat" data-k="${c.k}"><img src="${c.img}" alt="${c.k}" loading="lazy"></div>`).join('');
+  const visible=allCats().filter(c=>catAllowed(c.k));
+  $('cats').innerHTML=visible.map(c=>c.img?`<div class="cat" data-k="${c.k}"><img src="${c.img}" alt="${c.k}" loading="lazy"></div>`
+    :`<div class="cat cat-tx" data-k="${c.k}"><span class="ci">${c.ic}</span><span class="cn">${c.k}</span></div>`).join('');
   document.querySelectorAll('.cat').forEach(el=>el.onclick=()=>{
     document.querySelectorAll('.cat').forEach(x=>x.classList.remove('on'));
     el.classList.add('on');state.category=el.dataset.k;state.symptoms=[];
@@ -884,7 +947,7 @@ function renderCats(){
   });
 }
 function renderSymptoms(cat){
-  const subs=(PROBLEMS[cat]||[]).filter(s=>subAllowed(cat,s));
+  const subs=subsFor(cat).filter(s=>subAllowed(cat,s));
   $('symptoms').innerHTML=subs.map(s=>`<div class="chip2" data-s="${s}">${s}</div>`).join('');
   document.querySelectorAll('#symptoms .chip2').forEach(el=>el.onclick=()=>{
     el.classList.toggle('on');const s=el.dataset.s,i=state.symptoms.indexOf(s);
@@ -1114,7 +1177,7 @@ function openEmpEdit(e){
     <label class="fl">เลขที่ห้อง</label><input id="ee-room" value="${(e.room||'').replace(/"/g,'&quot;')}">
     <label class="fl">เบอร์โทร</label><input id="ee-phone" value="${(e.phone||'').replace(/"/g,'&quot;')}">
     <label class="fl">🔒 หมวดที่ห้ามแจ้ง (แตะเพื่อสลับ)</label>
-    <div class="chips" id="ee-cats">${CATEGORIES.map(c=>{
+    <div class="chips" id="ee-cats">${allCats().map(c=>{
       const on=(e.blockedCats||'').split(',').map(s=>s.trim()).includes(c.k);
       return `<div class="chip2 ${on?'on':''}" data-c="${c.k}">${c.ic} ${c.k}</div>`;}).join('')}</div>
     <div class="hint">หมวดที่เลือก (✓) จะถูกซ่อนจากพนักงานคนนี้</div>
@@ -1166,6 +1229,89 @@ async function resetEmpPin(code){
   const r=await api('adminResetPin',{token:state.token,empCode:code});
   if(r.ok)toast('🔑 รีเซ็ต PIN เป็น 1234 แล้ว');
 }
+
+/* ================= ADMIN: RIGHTS (สิทธิ์แผนก) ================= */
+const RZ={d:null,z:0,open:{},dirty:false};
+function rzClone(o){return JSON.parse(JSON.stringify(o));}
+function rzLoad(){ RZ.d=rzClone(RT); if(!RZ.d.order||!RZ.d.order.length)RZ.d.order=Object.keys(RZ.d.cat); if(RZ.z>=RZ.d.zones.length)RZ.z=0; RZ.dirty=false; }
+function openRights(){ rzLoad(); renderRights(); refreshRights().then(()=>{ if(!RZ.dirty){ rzLoad(); renderRights(); } }); }
+function rzMark(){ RZ.dirty=true; $('rz-dirty').style.display='block'; }
+function rzFlags(a){ const n=RZ.d.zones.length; const o=[]; for(let i=0;i<n;i++)o.push(a&&a[i]?1:0); return o; }
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/'/g,'&#39;').replace(/</g,'&lt;');}
+function renderRights(){
+  const d=RZ.d, z=RZ.z;
+  $('rz-dirty').style.display=RZ.dirty?'block':'none';
+  $('rz-zones').innerHTML=d.zones.map((zn,i)=>`<div class="f ${i===z?'on':''}" onclick="RZ.z=${i};renderRights()">🏠 ${esc(zn)}</div>`).join('')
+    +`<div class="f" onclick="rzZones()">⚙️ ประเภทบ้านพัก</div>`;
+  const icons={}; allCats().forEach(c=>icons[c.k]=c);
+  $('rz-body').innerHTML=d.order.map((k,idx)=>{
+    const o=d.cat[k]; if(!o)return ''; o.allow=rzFlags(o.allow); o.subs=o.subs||{};
+    const on=!!o.allow[z], ic=icons[k]||{ic:'🛠️',img:''}, K=esc(k);
+    const subs=Object.keys(o.subs); const nOn=subs.filter(s=>rzFlags(o.subs[s])[z]).length; const opened=!!RZ.open[k];
+    const builtin=CATEGORIES.some(c=>c.k===k), other=k==='อื่นๆ';
+    return `<div class="rz-cat ${opened?'open':''} ${on||other?'':'off'}">
+      <div class="rz-head" onclick="rzToggle('${K}')">
+        ${ic.img?`<img src="${ic.img}" alt="">`:`<span class="rz-em">${ic.ic}</span>`}
+        <div class="rz-nm"><b>${K}</b><small>${other?'หมวดสำรอง — พนักงานทุกประเภทเห็นเสมอ':(on?`เปิด · รายการซ่อม ${nOn}/${subs.length}`:'ปิด — พนักงานไม่เห็นหมวดนี้')}</small></div>
+        <label class="sw" onclick="event.stopPropagation()"><input type="checkbox" ${on||other?'checked':''} ${other?'disabled':''} onchange="rzCat('${K}',this.checked)"><i></i></label>
+        <span class="rz-caret">▾</span>
+      </div>
+      ${opened?`<div class="rz-subs">
+        ${subs.length?subs.map(s=>{const so=!!rzFlags(o.subs[s])[z], S=esc(s);return `<div class="rz-sub ${so?'':'dis'}"><span>${S}</span>
+          <label class="sw"><input type="checkbox" ${so?'checked':''} onchange="rzSub('${K}','${S}',this.checked)"><i></i></label>
+          <button class="rz-x" title="ลบรายการ" onclick="rzDelSub('${K}','${S}')">✕</button></div>`;}).join('')
+          :`<div class="hint" style="margin:8px 0">ยังไม่มีรายการซ่อมย่อย — พนักงานจะเห็นเฉพาะ "${OTHER}"</div>`}
+        <div class="rz-add"><input id="rz-new-${idx}" placeholder="เพิ่มรายการซ่อมใหม่ในหมวดนี้..." onkeydown="if(event.key==='Enter')rzAddSub('${K}',${idx})"><button class="btn sm" onclick="rzAddSub('${K}',${idx})">เพิ่ม</button></div>
+        <div class="rz-tools">
+          <button onclick="rzAll('${K}',1)">✅ เปิดทุกรายการ</button><button onclick="rzAll('${K}',0)">⛔ ปิดทุกรายการ</button>
+          ${builtin?'':`<button class="dn" onclick="rzDelCat('${K}')">🗑️ ลบหมวดนี้</button>`}
+        </div>
+      </div>`:''}
+    </div>`;}).join('');
+}
+function rzToggle(k){ RZ.open[k]=!RZ.open[k]; renderRights(); }
+function rzCat(k,v){ const o=RZ.d.cat[k]; o.allow=rzFlags(o.allow); o.allow[RZ.z]=v?1:0;
+  const subs=Object.keys(o.subs||{});
+  if(v&&subs.length&&!subs.some(s=>rzFlags(o.subs[s])[RZ.z])) subs.forEach(s=>{o.subs[s]=rzFlags(o.subs[s]);o.subs[s][RZ.z]=1;});   // เปิดหมวดที่ยังไม่มีรายการเปิดเลย → เปิดให้ทั้งหมด
+  rzMark(); renderRights(); }
+function rzSub(k,s,v){ const o=RZ.d.cat[k]; o.subs[s]=rzFlags(o.subs[s]); o.subs[s][RZ.z]=v?1:0;
+  if(v){ o.allow=rzFlags(o.allow); o.allow[RZ.z]=1; }   // เปิดรายการ → หมวดต้องเปิดด้วย
+  rzMark(); renderRights(); }
+function rzAll(k,v){ const o=RZ.d.cat[k]; Object.keys(o.subs||{}).forEach(s=>{o.subs[s]=rzFlags(o.subs[s]);o.subs[s][RZ.z]=v;}); if(v){o.allow=rzFlags(o.allow);o.allow[RZ.z]=1;} rzMark(); renderRights(); }
+function rzAddSub(k,i){ const inp=$('rz-new-'+i); const s=(inp?inp.value:'').trim(); if(!s)return toast('พิมพ์ชื่อรายการซ่อมก่อน');
+  const o=RZ.d.cat[k]; o.subs=o.subs||{}; if(o.subs[s])return toast('มีรายการนี้อยู่แล้ว');
+  const f=rzFlags([]); f[RZ.z]=1; o.subs[s]=f; o.allow=rzFlags(o.allow); o.allow[RZ.z]=1; RZ.open[k]=true; rzMark(); renderRights();
+  const n=$('rz-new-'+i); if(n)n.focus(); toast('➕ เพิ่ม "'+s+'" แล้ว (เปิดให้ '+RZ.d.zones[RZ.z]+')'); }
+function rzDelSub(k,s){ if(!confirm('ลบรายการ "'+s+'" ออกจากหมวด '+k+' (ทุกประเภทบ้านพัก)?'))return; delete RZ.d.cat[k].subs[s]; rzMark(); renderRights(); }
+function rzAddCat(){ const k=(prompt('ชื่อหมวดใหม่ (เช่น กล้องวงจรปิด)')||'').trim(); if(!k)return; if(RZ.d.cat[k])return toast('มีหมวดนี้อยู่แล้ว');
+  const f=rzFlags([]); f[RZ.z]=1; RZ.d.cat[k]={allow:f,subs:{}}; RZ.d.order.push(k); RZ.open[k]=true; rzMark(); renderRights();
+  setTimeout(()=>{const el=$('rz-body').lastElementChild; if(el)el.scrollIntoView({behavior:'smooth',block:'center'});},50); }
+function rzDelCat(k){ if(!confirm('ลบหมวด "'+k+'" และรายการซ่อมทั้งหมดในหมวด?'))return; delete RZ.d.cat[k]; RZ.d.order=RZ.d.order.filter(x=>x!==k); rzMark(); renderRights(); }
+function rzZones(){
+  const d=RZ.d;
+  $('sheet').innerHTML=`<h2 style="font-family:var(--display);text-align:center">🏠 ประเภทบ้านพัก</h2>
+    <p class="sub-c">ชื่อต้องตรงกับช่อง "จุดบ้านพัก" ของพนักงาน จึงจะจับคู่สิทธิ์ได้</p>
+    <div id="rz-zl">${d.zones.map((z,i)=>`<div class="rz-zone-row"><input value="${esc(z)}" onchange="rzRenameZone(${i},this.value)">${d.zones.length>1?`<button class="rz-x" onclick="rzDelZone(${i})">✕</button>`:''}</div>`).join('')}</div>
+    <div class="rz-add"><input id="rz-newzone" placeholder="เพิ่มประเภทบ้านพักใหม่..."><button class="btn sm" onclick="rzAddZone()">เพิ่ม</button></div>
+    <div class="hint">ประเภทใหม่จะเริ่มด้วยสิทธิ์ปิดทั้งหมด (ยกเว้น "อื่นๆ") แล้วค่อยเปิดทีละหมวด · อย่าลืมกด "บันทึกสิทธิ์"</div>
+    <div style="height:14px"></div><button class="btn" onclick="closeModal();renderRights()">ตกลง</button>`;
+  $('modal').classList.add('show');
+}
+function rzEachFlags(fn){ const d=RZ.d; d.order.forEach(k=>{const o=d.cat[k]; o.allow=fn(rzFlags(o.allow)); Object.keys(o.subs||{}).forEach(s=>o.subs[s]=fn(rzFlags(o.subs[s])));}); }
+function rzAddZone(){ const z=($('rz-newzone').value||'').trim(); if(!z)return; if(RZ.d.zones.includes(z))return toast('มีประเภทนี้อยู่แล้ว');
+  rzEachFlags(a=>{a.push(0);return a;}); RZ.d.zones.push(z); const o=RZ.d.cat['อื่นๆ']; if(o)o.allow[RZ.d.zones.length-1]=1; RZ.z=RZ.d.zones.length-1; rzMark(); rzZones(); }
+function rzRenameZone(i,v){ v=(v||'').trim(); if(!v||RZ.d.zones.includes(v))return rzZones(); RZ.d.zones[i]=v; rzMark(); }
+function rzDelZone(i){ if(!confirm('ลบประเภท "'+RZ.d.zones[i]+'" ? สิทธิ์ของประเภทนี้จะหายไป'))return;
+  rzEachFlags(a=>{a.splice(i,1);return a;}); RZ.d.zones.splice(i,1); if(RZ.z>=RZ.d.zones.length)RZ.z=0; rzMark(); rzZones(); }
+async function rzSave(){
+  if(!RZ.d.zones.length)return toast('ต้องมีประเภทบ้านพักอย่างน้อย 1');
+  toast('⏳ กำลังบันทึก...');
+  const r=await api('adminSaveRights',{token:state.token,rights:RZ.d});
+  if(!r.ok)return toast(r.error||'บันทึกไม่สำเร็จ');
+  setRights(r.data.rights); rzLoad(); renderRights();
+  toast('✅ บันทึกสิทธิ์แล้ว มีผลกับพนักงานทันที');
+}
+function rzReset(){ if(RZ.dirty&&!confirm('ยกเลิกการแก้ไขทั้งหมด?'))return; rzLoad(); renderRights(); }
 
 /* ================= TICKET DETAIL ================= */
 let openId=null;
