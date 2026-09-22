@@ -871,7 +871,7 @@ function stopAdminPoll(){ if(pollTimer){clearInterval(pollTimer);pollTimer=null;
 async function adminPoll(){
   if(state.role!=='admin'||!state.token)return;   // poll แม้อยู่เบื้องหลัง เพื่อเด้งแจ้งเตือนตอนสลับไปแอปอื่น
   const r=await api('adminList',{token:state.token,filter:'ทั้งหมด'});
-  if(!r.ok)return;
+  if(!r.ok||!r.data)return;
   const tickets=r.data.tickets||[]; cacheSet('adm_ทั้งหมด',r.data);
   const top=tickets[0];
   if(top&&lastTopId&&top.ticketId!==lastTopId){
@@ -1076,7 +1076,7 @@ async function loadAdmin(){
   if(admLoading)return; admLoading=true;
   try{
     const r=await api('adminList',{token:state.token,filter:state.filter});
-    if(!r.ok){if(!c)toast(r.error||'โหลดไม่สำเร็จ');return;}
+    if(!r.ok||!r.data){if(!c)toast(r.error||'โหลดไม่สำเร็จ');return;}
     cacheSet(key,r.data);renderAdmin(r.data.tickets,r.data.stats);
   }finally{admLoading=false;}
 }
@@ -1160,7 +1160,7 @@ $('emp-q').addEventListener('input',()=>{clearTimeout(empSearchTimer);const q=$(
   empSearchTimer=setTimeout(()=>searchEmp(q),350);});
 async function searchEmp(q){
   const r=await api('adminSearchEmp',{token:state.token,q});
-  if(!r.ok)return;
+  if(!r.ok||!r.data)return;
   const list=r.data.employees;
   $('emp-results').innerHTML=list.length?list.map(e=>`
     <div class="emp-row" onclick='openEmpEdit(${JSON.stringify(e).replace(/'/g,"&#39;")})'>
