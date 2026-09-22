@@ -603,6 +603,7 @@
   <!-- ============ ADMIN: RIGHTS ============ -->
   <section id="s-arights" class="screen">
     <div class="topbar"><h1>🔐 สิทธิ์แจ้งซ่อมตามแผนก</h1><div class="sub">เปิด/ปิดหมวด · เพิ่ม/ลดรายการซ่อม ของแต่ละประเภทบ้านพัก</div></div>
+    <div class="err" id="rz-warn" style="display:none;margin-bottom:12px">⚠️ Backend ยังเป็นเวอร์ชันเก่า — บันทึกสิทธิ์จะไม่มีผล<br><small>เปิด Apps Script → วาง Code.gs ใหม่ → Deploy → Manage deployments → ✏️ → New version → Deploy</small></div>
     <div class="filters" id="rz-zones"></div>
     <div class="hint" style="margin:-2px 0 12px">แตะหมวดเพื่อดูรายการซ่อมย่อย · สวิตช์ = เปิดให้ประเภทบ้านพักที่เลือกแจ้งได้ · ปิด = ซ่อนจากพนักงาน</div>
     <div id="rz-body"></div>
@@ -668,7 +669,8 @@ const $=id=>document.getElementById(id);
 let RT=(typeof RIGHTS!=='undefined')?JSON.parse(JSON.stringify(RIGHTS)):{zones:[],cat:{}};
 (function(){ try{const c=JSON.parse(store.get('ef_rights')); if(c&&c.zones&&c.cat)RT=c; }catch(e){} })();
 function setRights(r){ if(!r||!r.zones||!r.cat)return false; const j=JSON.stringify(r), changed=j!==JSON.stringify(RT); RT=r; store.set('ef_rights',j); return changed; }
-async function refreshRights(){ try{ const r=await api('getRights',{}); if(r.ok&&r.data.rights){ if(setRights(r.data.rights)&&state.role!=='admin')renderCats(); } }catch(e){} }
+async function refreshRights(){ try{ const r=await api('getRights',{}); if(r.ok&&r.data.rights){ if(setRights(r.data.rights)&&state.role!=='admin')renderCats(); return true; }
+  if(r&&/unknown action/.test(r.error||'')){ const w=$('rz-warn'); if(w)w.style.display='block'; } }catch(e){} return false; }
 function rtOrder(){ return (RT.order&&RT.order.length)?RT.order:Object.keys(RT.cat||{}); }
 /** หมวดทั้งหมด = 12 หมวดมาตรฐาน (มีรูป) + หมวดที่แอดมินเพิ่มเอง (แสดงเป็นไอคอน+ชื่อ) */
 function allCats(){ const base=CATEGORIES.slice(), have=new Set(base.map(c=>c.k));
